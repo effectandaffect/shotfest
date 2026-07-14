@@ -1,0 +1,18 @@
+/* ShotFest Votaciones — Admin */
+
+.sf-metabox-table th {
+    width: 200px;
+}
+
+.sf-shortlist {
+    background: #fef9c3 !important;
+}
+
+.sf-shortlist td {
+    font-weight: 600;
+}
+
+/* Pantalla de resultados */
+.wrap table.widefat .sf-shortlist td:first-child::before {
+    content: '⭐ ';
+}

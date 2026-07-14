@@ -1,0 +1,14 @@
+# Dependencias de Composer (se regeneran con composer install)
+shotfest-votaciones/vendor/
+
+# Archivos de entorno local
+.wp-env.override.json
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
