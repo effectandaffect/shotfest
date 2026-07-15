@@ -1,30 +1,28 @@
-/* ShotFest Votaciones — Frontend (Design: cine-negro + dorado) */
-
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap');
+/* ShotFest Votaciones — Frontend (adaptado al estilo de shotfest.es) */
 
 :root {
-    --sf-gold:       #c9a227;
-    --sf-gold-dark:  #8a6d14;
-    --sf-gold-light: rgba(201,162,39,.12);
-    --sf-text:       #1a1815;
-    --sf-text-soft:  rgba(26,24,21,.55);
-    --sf-text-muted: rgba(26,24,21,.4);
-    --sf-border:     rgba(0,0,0,.1);
-    --sf-border-med: rgba(0,0,0,.14);
-    --sf-bg-subtle:  rgba(0,0,0,.015);
-    --sf-bg-input:   rgba(0,0,0,.04);
-    --sf-si:         #2f9e64;
-    --sf-si-bg:      rgba(47,158,100,.12);
-    --sf-no:         #c0392b;
-    --sf-no-bg:      rgba(192,57,43,.1);
-    --sf-radius:     14px;
-    --sf-radius-sm:  8px;
-    --sf-font-heading: 'Bebas Neue', sans-serif;
-    --sf-font-body:    'Inter', system-ui, -apple-system, sans-serif;
+    --sf-accent:      #f39200;
+    --sf-accent-dark: #c27500;
+    --sf-accent-light:rgba(243,146,0,.12);
+    --sf-text:        #212529;
+    --sf-text-soft:   rgba(33,37,41,.55);
+    --sf-text-muted:  rgba(33,37,41,.4);
+    --sf-border:      rgba(0,0,0,.1);
+    --sf-border-med:  rgba(0,0,0,.14);
+    --sf-bg-subtle:   rgba(0,0,0,.015);
+    --sf-bg-input:    rgba(0,0,0,.04);
+    --sf-si:          #198754;
+    --sf-si-bg:       rgba(25,135,84,.1);
+    --sf-no:          #dc3545;
+    --sf-no-bg:       rgba(220,53,69,.08);
+    --sf-radius:      14px;
+    --sf-radius-sm:   8px;
+    --sf-font-heading:'Aftika', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --sf-font-body:   system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 }
 
 ::selection {
-    background: var(--sf-gold);
+    background: var(--sf-accent);
     color: #ffffff;
 }
 
@@ -52,17 +50,17 @@
 }
 
 .sf-login-label {
-    font: 400 15px var(--sf-font-heading);
-    letter-spacing: .2em;
+    font: 700 14px var(--sf-font-heading);
+    letter-spacing: .15em;
     text-transform: uppercase;
-    color: var(--sf-gold-dark);
+    color: var(--sf-accent);
     margin-bottom: 10px;
     text-align: center;
 }
 
 .sf-login-titulo {
-    font: 400 32px var(--sf-font-heading);
-    letter-spacing: .02em;
+    font: 700 28px var(--sf-font-heading);
+    letter-spacing: .01em;
     margin: 0 0 28px;
     color: var(--sf-text);
     text-align: center;
@@ -94,7 +92,7 @@
 
 .sf-login-box input[type="text"]:focus,
 .sf-login-box input[type="password"]:focus {
-    border-color: var(--sf-gold);
+    border-color: var(--sf-accent);
 }
 
 .sf-login-box .login-remember {
@@ -111,17 +109,17 @@
     padding: 14px;
     border: none;
     border-radius: var(--sf-radius-sm);
-    background: var(--sf-gold);
+    background: var(--sf-accent);
     color: #ffffff;
     font: 700 13px var(--sf-font-body);
     letter-spacing: .05em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: opacity .2s;
+    transition: background .2s;
 }
 
 .sf-login-box input[type="submit"]:hover {
-    opacity: .88;
+    background: var(--sf-accent-dark);
 }
 
 .sf-login-ayuda {
@@ -137,7 +135,7 @@
 }
 
 .sf-login-ayuda a:hover {
-    color: var(--sf-gold-dark);
+    color: var(--sf-accent);
 }
 
 /* ===================== HEADER / PROGRESO ===================== */
@@ -163,16 +161,16 @@
 }
 
 .sf-header-label {
-    font: 400 14px var(--sf-font-heading);
-    letter-spacing: .2em;
+    font: 700 13px var(--sf-font-heading);
+    letter-spacing: .15em;
     text-transform: uppercase;
-    color: var(--sf-gold-dark);
+    color: var(--sf-accent);
     margin: 0 0 6px;
 }
 
 .sf-titulo {
-    font: 400 36px var(--sf-font-heading);
-    letter-spacing: .02em;
+    font: 700 32px var(--sf-font-heading);
+    letter-spacing: .01em;
     margin: 0;
     color: var(--sf-text);
 }
@@ -180,7 +178,7 @@
 .sf-logout-btn {
     background: transparent;
     border: 1px solid rgba(0,0,0,.18);
-    color: rgba(26,24,21,.7);
+    color: rgba(33,37,41,.7);
     padding: 9px 16px;
     border-radius: 7px;
     font: 600 12px var(--sf-font-body);
@@ -190,8 +188,8 @@
 }
 
 .sf-logout-btn:hover {
-    border-color: var(--sf-gold);
-    color: var(--sf-gold-dark);
+    border-color: var(--sf-accent);
+    color: var(--sf-accent-dark);
 }
 
 /* Barra de progreso */
@@ -221,7 +219,7 @@
 }
 
 .sf-progreso-fill {
-    background: var(--sf-gold);
+    background: var(--sf-accent);
     height: 100%;
     border-radius: 999px;
     transition: width 0.4s ease;
@@ -249,7 +247,7 @@
     border-radius: 999px;
     border: 1px solid var(--sf-border-med);
     background: transparent;
-    color: rgba(26,24,21,.7);
+    color: rgba(33,37,41,.7);
     font: 600 12.5px var(--sf-font-body);
     letter-spacing: .02em;
     cursor: pointer;
@@ -260,26 +258,26 @@
 }
 
 .sf-category-tab:hover {
-    border-color: var(--sf-gold);
-    color: var(--sf-gold-dark);
+    border-color: var(--sf-accent);
+    color: var(--sf-accent-dark);
 }
 
 .sf-category-tab.sf-tab-active {
-    border-color: var(--sf-gold);
-    background: var(--sf-gold-light);
-    color: var(--sf-gold-dark);
+    border-color: var(--sf-accent);
+    background: var(--sf-accent-light);
+    color: var(--sf-accent-dark);
 }
 
 .sf-category-count {
     font: 600 10.5px ui-monospace, monospace;
     background: rgba(0,0,0,.08);
-    color: rgba(26,24,21,.6);
+    color: rgba(33,37,41,.6);
     padding: 2px 7px;
     border-radius: 999px;
 }
 
 .sf-tab-active .sf-category-count {
-    background: var(--sf-gold);
+    background: var(--sf-accent);
     color: #ffffff;
 }
 
@@ -305,8 +303,8 @@
 }
 
 .sf-spot-card:hover {
-    border-color: rgba(201,162,39,.3);
-    box-shadow: 0 2px 12px rgba(201,162,39,.06);
+    border-color: rgba(243,146,0,.3);
+    box-shadow: 0 2px 12px rgba(243,146,0,.06);
 }
 
 .sf-spot-thumb {
@@ -419,7 +417,7 @@
     border-radius: 7px;
     border: 1px solid var(--sf-border-med);
     background: transparent;
-    color: rgba(26,24,21,.7);
+    color: rgba(33,37,41,.7);
     font: 600 12.5px var(--sf-font-body);
     cursor: pointer;
     text-decoration: none;
@@ -428,8 +426,8 @@
 }
 
 .sf-btn:hover {
-    border-color: var(--sf-gold);
-    color: var(--sf-gold-dark);
+    border-color: var(--sf-accent);
+    color: var(--sf-accent-dark);
 }
 
 .sf-btn:disabled {
@@ -438,8 +436,8 @@
 }
 
 .sf-btn-detalle {
-    background: var(--sf-gold);
-    border-color: var(--sf-gold);
+    background: var(--sf-accent);
+    border-color: var(--sf-accent);
     color: #ffffff;
     font-weight: 700;
     letter-spacing: .03em;
@@ -449,7 +447,8 @@
 }
 
 .sf-btn-detalle:hover {
-    opacity: .88;
+    background: var(--sf-accent-dark);
+    border-color: var(--sf-accent-dark);
     color: #ffffff;
 }
 
@@ -470,13 +469,13 @@
 .sf-breadcrumb a {
     font: 600 12.5px var(--sf-font-body);
     letter-spacing: .02em;
-    color: var(--sf-gold-dark);
+    color: var(--sf-accent);
     text-decoration: none;
     transition: color .2s;
 }
 
 .sf-breadcrumb a:hover {
-    color: var(--sf-gold);
+    color: var(--sf-accent-dark);
 }
 
 .sf-detalle-spot {
@@ -488,8 +487,8 @@
 }
 
 .sf-spot-titulo {
-    font: 400 34px var(--sf-font-heading);
-    letter-spacing: .02em;
+    font: 700 28px var(--sf-font-heading);
+    letter-spacing: .01em;
     color: var(--sf-text);
     margin: 0 0 4px;
 }
@@ -597,9 +596,9 @@
 }
 
 .sf-ya-votado {
-    background: var(--sf-gold-light);
-    border: 1px solid var(--sf-gold);
-    color: var(--sf-gold-dark);
+    background: var(--sf-accent-light);
+    border: 1px solid var(--sf-accent);
+    color: var(--sf-accent-dark);
     padding: 14px 18px;
     border-radius: var(--sf-radius-sm);
     font: 500 14px var(--sf-font-body);
@@ -620,16 +619,16 @@
 }
 
 .sf-gate-label {
-    font: 400 15px var(--sf-font-heading);
-    letter-spacing: .2em;
+    font: 700 14px var(--sf-font-heading);
+    letter-spacing: .15em;
     text-transform: uppercase;
-    color: var(--sf-gold-dark);
+    color: var(--sf-accent);
     margin: 0 0 14px;
 }
 
 .sf-gate-title {
-    font: 400 40px var(--sf-font-heading);
-    letter-spacing: .03em;
+    font: 700 34px var(--sf-font-heading);
+    letter-spacing: .01em;
     margin: 0 0 16px;
     color: var(--sf-text);
 }
@@ -655,10 +654,10 @@
 }
 
 .sf-categoria-nombre {
-    font: 400 22px var(--sf-font-heading);
-    letter-spacing: .04em;
+    font: 700 20px var(--sf-font-heading);
+    letter-spacing: .02em;
     color: var(--sf-text);
-    border-bottom: 2px solid var(--sf-gold);
+    border-bottom: 2px solid var(--sf-accent);
     padding-bottom: 8px;
     margin: 32px 0 16px;
 }
@@ -682,7 +681,7 @@
 }
 
 .sf-resultado-item:hover {
-    border-color: rgba(201,162,39,.3);
+    border-color: rgba(243,146,0,.3);
 }
 
 .sf-resultado-titulo {
@@ -697,7 +696,7 @@
 }
 
 .sf-shortlist-badge {
-    background: var(--sf-gold);
+    background: var(--sf-accent);
     color: #ffffff;
     font: 700 10px var(--sf-font-body);
     padding: 4px 10px;
@@ -715,7 +714,7 @@
     padding: 56px 40px;
     border: 1px solid var(--sf-border);
     border-radius: 16px;
-    background: linear-gradient(180deg, rgba(201,162,39,.05), transparent);
+    background: linear-gradient(180deg, rgba(243,146,0,.05), transparent);
     animation: sf-fade .3s ease;
 }
 
@@ -723,19 +722,19 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: rgba(201,162,39,.15);
-    border: 1px solid var(--sf-gold);
+    background: rgba(243,146,0,.15);
+    border: 1px solid var(--sf-accent);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 22px;
     font: 700 22px var(--sf-font-body);
-    color: var(--sf-gold-dark);
+    color: var(--sf-accent-dark);
 }
 
 .sf-done-title {
-    font: 400 34px var(--sf-font-heading);
-    letter-spacing: .02em;
+    font: 700 28px var(--sf-font-heading);
+    letter-spacing: .01em;
     margin: 0 0 12px;
     color: var(--sf-text);
 }
@@ -763,11 +762,11 @@
     }
 
     .sf-titulo {
-        font-size: 28px;
+        font-size: 24px;
     }
 
     .sf-gate-title {
-        font-size: 30px;
+        font-size: 26px;
     }
 
     .sf-login-box {
@@ -779,6 +778,6 @@
     }
 
     .sf-spot-titulo {
-        font-size: 26px;
+        font-size: 22px;
     }
 }
