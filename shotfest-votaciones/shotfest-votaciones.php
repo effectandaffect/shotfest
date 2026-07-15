@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'SF_VERSION', '1.0.0' );
+define( 'SF_VERSION', '1.0.1' );
 define( 'SF_PLUGIN_FILE', __FILE__ );
 define( 'SF_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SF_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

@@ -57,26 +57,26 @@ class Plugin {
     }
 
     public function enqueue_frontend_assets(): void {
-        if ( ! is_user_logged_in() ) {
-            return;
-        }
         wp_enqueue_style(
             'sf-frontend',
             SF_PLUGIN_URL . 'assets/css/frontend.css',
             [],
             SF_VERSION
         );
-        wp_enqueue_script(
-            'sf-votacion',
-            SF_PLUGIN_URL . 'assets/js/votacion.js',
-            [],
-            SF_VERSION,
-            true
-        );
-        wp_localize_script( 'sf-votacion', 'sfAjax', [
-            'ajaxurl' => admin_url( 'admin-ajax.php' ),
-            'nonce'   => wp_create_nonce( 'sf_emitir_voto' ),
-        ] );
+
+        if ( is_user_logged_in() ) {
+            wp_enqueue_script(
+                'sf-votacion',
+                SF_PLUGIN_URL . 'assets/js/votacion.js',
+                [],
+                SF_VERSION,
+                true
+            );
+            wp_localize_script( 'sf-votacion', 'sfAjax', [
+                'ajaxurl' => admin_url( 'admin-ajax.php' ),
+                'nonce'   => wp_create_nonce( 'sf_emitir_voto' ),
+            ] );
+        }
     }
 
     public function enqueue_admin_assets( string $hook ): void {

@@ -12,7 +12,10 @@ $edicion = get_post_meta( $periodo->ID, '_sf_periodo_edicion_year', true );
 ?>
 <div class="sf-resultados-wrap">
     <header class="sf-header">
-        <h1 class="sf-titulo"><?php echo esc_html( sprintf( __( 'Resultados ShotFest %s', 'shotfest-votaciones' ), $edicion ) ); ?></h1>
+        <div class="sf-header-left">
+            <p class="sf-header-label"><?php echo esc_html( sprintf( __( 'Edición %s', 'shotfest-votaciones' ), $edicion ) ); ?></p>
+            <h1 class="sf-titulo"><?php esc_html_e( 'Resultados del jurado', 'shotfest-votaciones' ); ?></h1>
+        </div>
     </header>
 
     <?php if ( empty( $clasificacion ) ) : ?>

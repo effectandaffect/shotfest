@@ -9,12 +9,12 @@
         const spotId   = contenedor.dataset.spotId;
         const feedback = document.querySelector('.sf-voto-feedback');
 
-        contenedor.querySelectorAll('.sf-btn[data-valor]').forEach(function (btn) {
+        contenedor.querySelectorAll('button[data-valor]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 const valor = btn.dataset.valor;
 
                 btn.disabled = true;
-                contenedor.querySelectorAll('.sf-btn').forEach(b => b.disabled = true);
+                contenedor.querySelectorAll('button[data-valor]').forEach(b => b.disabled = true);
 
                 const body = new URLSearchParams({
                     action:   'sf_emitir_voto',
@@ -42,7 +42,7 @@
                                 feedback.textContent = data.data.mensaje || 'Error al registrar el voto.';
                                 feedback.className = 'sf-voto-feedback sf-error';
                             }
-                            contenedor.querySelectorAll('.sf-btn').forEach(b => b.disabled = false);
+                            contenedor.querySelectorAll('button[data-valor]').forEach(b => b.disabled = false);
                         }
                     })
                     .catch(function () {
@@ -50,7 +50,7 @@
                             feedback.textContent = 'Error de conexión. Por favor, inténtalo de nuevo.';
                             feedback.className = 'sf-voto-feedback sf-error';
                         }
-                        contenedor.querySelectorAll('.sf-btn').forEach(b => b.disabled = false);
+                        contenedor.querySelectorAll('button[data-valor]').forEach(b => b.disabled = false);
                     });
             });
         });

@@ -31,16 +31,16 @@ $home_url  = get_permalink();
 
         <div class="sf-voto-seccion">
             <?php if ( $ya_voto ) : ?>
-                <p class="sf-aviso sf-ya-votado"><?php esc_html_e( 'Ya has emitido tu voto para este spot. El voto es definitivo y no puede modificarse.', 'shotfest-votaciones' ); ?></p>
+                <p class="sf-ya-votado"><?php esc_html_e( 'Ya has emitido tu voto para este spot. El voto es definitivo y no puede modificarse.', 'shotfest-votaciones' ); ?></p>
 
             <?php elseif ( $periodo_abierto ) : ?>
                 <p class="sf-instrucciones"><?php esc_html_e( '¿Este spot merece pasar a la siguiente fase?', 'shotfest-votaciones' ); ?></p>
-                <div class="sf-botones-voto" data-spot-id="<?php echo esc_attr( $spot->ID ); ?>">
-                    <button type="button" class="sf-btn sf-btn-si" data-valor="1">
-                        <?php esc_html_e( '👍 Sí', 'shotfest-votaciones' ); ?>
+                <div class="sf-botones-voto" data-spot-id="<?php echo esc_attr( (string) $spot->ID ); ?>">
+                    <button type="button" class="sf-btn-si" data-valor="1">
+                        <?php esc_html_e( '✓ Aprobar', 'shotfest-votaciones' ); ?>
                     </button>
-                    <button type="button" class="sf-btn sf-btn-no" data-valor="0">
-                        <?php esc_html_e( '👎 No', 'shotfest-votaciones' ); ?>
+                    <button type="button" class="sf-btn-no" data-valor="0">
+                        <?php esc_html_e( '✕ Rechazar', 'shotfest-votaciones' ); ?>
                     </button>
                 </div>
                 <div class="sf-voto-feedback" role="alert" aria-live="polite"></div>
