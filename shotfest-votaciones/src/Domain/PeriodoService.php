@@ -88,8 +88,8 @@ class PeriodoService {
         return get_posts( [
             'post_type'      => SpotPostType::POST_TYPE,
             'posts_per_page' => -1,
-            'orderby'        => [ 'meta_value_num' => 'ASC', 'title' => 'ASC' ],
-            'meta_key'       => '_sf_spot_orden',
+            'orderby'        => 'title',
+            'order'          => 'ASC',
             'meta_query'     => [
                 'relation' => 'AND',
                 [
@@ -109,8 +109,8 @@ class PeriodoService {
         return get_posts( [
             'post_type'      => SpotPostType::POST_TYPE,
             'posts_per_page' => -1,
-            'orderby'        => [ 'meta_value_num' => 'ASC', 'title' => 'ASC' ],
-            'meta_key'       => '_sf_spot_orden',
+            'orderby'        => 'title',
+            'order'          => 'ASC',
             'meta_query'     => [
                 [
                     'key'   => '_sf_spot_periodo_id',

@@ -1,5 +1,6 @@
-# Dependencias de Composer (se regeneran con composer install)
+# Dependencias (se regeneran con composer install / npm install)
 shotfest-votaciones/vendor/
+shotfest-votaciones/node_modules/
 
 # Archivos de entorno local
 .wp-env.override.json

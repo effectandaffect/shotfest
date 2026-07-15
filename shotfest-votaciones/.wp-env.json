@@ -1,5 +1,5 @@
 {
-    "core": "WordPress/WordPress#6.5",
+    "core": "https://wordpress.org/wordpress-6.5.zip",
     "phpVersion": "8.1",
     "plugins": [
         "."
@@ -12,6 +12,7 @@
     },
     "env": {
         "tests": {
+            "core": "https://wordpress.org/wordpress-6.5.zip",
             "port": 8890,
             "config": {
                 "WP_DEBUG": false

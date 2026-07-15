@@ -35,7 +35,7 @@ class SpotPostType {
             'show_in_menu'        => 'shotfest-votaciones',
             'show_in_rest'        => false,
             'capability_type'     => 'post',
-            'map_meta_cap'        => true,
+            'map_meta_cap'        => false,
             'capabilities'        => [
                 'edit_post'          => 'sf_gestionar_spots',
                 'read_post'          => 'sf_gestionar_spots',
