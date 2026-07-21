@@ -14,6 +14,13 @@ $spot_url  = get_permalink() . '?sf_spot=' . $spot->ID;
 $marca     = get_post_meta( $spot->ID, '_sf_spot_marca', true );
 $thumb_url = get_the_post_thumbnail_url( $spot->ID, 'medium' );
 $video_url = get_post_meta( $spot->ID, '_sf_spot_video_url', true );
+
+if ( ! $thumb_url ) {
+    $video_id = sf_extract_video_id( $video_url );
+    if ( $video_id ) {
+        $thumb_url = 'https://img.youtube.com/vi/' . $video_id . '/hqdefault.jpg';
+    }
+}
 ?>
 <article class="sf-spot-card" data-sf-cats="<?php echo esc_attr( implode( ',', $cat_slugs ?? [] ) ); ?>">
     <div class="sf-spot-thumb">

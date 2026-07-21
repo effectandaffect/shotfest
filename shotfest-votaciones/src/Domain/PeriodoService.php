@@ -8,10 +8,14 @@ use ShotfestVotaciones\PostTypes\SpotPostType;
 
 class PeriodoService {
 
+    /** Estados de post considerados válidos al listar Periodos/Ediciones para selección — un CPT guardado como borrador debe seguir siendo utilizable */
+    const POST_STATUSES = [ 'publish', 'draft', 'pending', 'private' ];
+
     /** Devuelve el periodo abierto activo (el primero que encuentre), o null */
     public function get_periodo_abierto(): ?\WP_Post {
         $periodos = get_posts( [
             'post_type'      => PeriodoPostType::POST_TYPE,
+            'post_status'    => self::POST_STATUSES,
             'posts_per_page' => 1,
             'meta_query'     => [
                 [
@@ -69,6 +73,7 @@ class PeriodoService {
     public function get_periodo_con_resultados(): ?\WP_Post {
         $periodos = get_posts( [
             'post_type'      => PeriodoPostType::POST_TYPE,
+            'post_status'    => self::POST_STATUSES,
             'posts_per_page' => 1,
             'orderby'        => 'date',
             'order'          => 'DESC',
@@ -115,6 +120,23 @@ class PeriodoService {
                 [
                     'key'   => '_sf_spot_periodo_id',
                     'value' => $periodo_id,
+                ],
+            ],
+        ] );
+    }
+
+    /** Devuelve los periodos pertenecientes a una edición dada */
+    public function get_periodos_de_edicion( int $edicion_id ): array {
+        return get_posts( [
+            'post_type'      => PeriodoPostType::POST_TYPE,
+            'post_status'    => self::POST_STATUSES,
+            'posts_per_page' => -1,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'meta_query'     => [
+                [
+                    'key'   => '_sf_periodo_edicion_id',
+                    'value' => $edicion_id,
                 ],
             ],
         ] );

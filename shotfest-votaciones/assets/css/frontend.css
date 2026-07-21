@@ -168,6 +168,12 @@
     margin: 0 0 6px;
 }
 
+.sf-header-periodo {
+    font: 500 14px var(--sf-font-body, inherit);
+    color: var(--sf-text-muted, #666);
+    margin: 0 0 6px;
+}
+
 .sf-titulo {
     font: 700 32px var(--sf-font-heading);
     letter-spacing: .01em;

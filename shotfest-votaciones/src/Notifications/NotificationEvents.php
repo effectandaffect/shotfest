@@ -9,7 +9,7 @@ use ShotfestVotaciones\Domain\PeriodoService;
 class NotificationEvents {
 
     public function __construct(
-        private readonly EmailNotifier $notifier = new EmailNotifier()
+        private readonly EmailNotifier $notifier
     ) {}
 
     public function register(): void {

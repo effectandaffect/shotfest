@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace ShotfestVotaciones\PostTypes;
 
+use ShotfestVotaciones\Domain\PeriodoService;
+use ShotfestVotaciones\PostTypes\PeriodoPostType;
+
 class SpotPostType {
 
     const POST_TYPE = 'sf_spot';
@@ -11,6 +14,9 @@ class SpotPostType {
         add_action( 'init', [ $this, 'register_post_type' ] );
         add_filter( 'manage_' . self::POST_TYPE . '_posts_columns', [ $this, 'add_columns' ] );
         add_action( 'manage_' . self::POST_TYPE . '_posts_custom_column', [ $this, 'render_column' ], 10, 2 );
+        add_filter( 'disable_months_dropdown', [ $this, 'disable_months_dropdown' ], 10, 2 );
+        add_action( 'restrict_manage_posts', [ $this, 'render_filtro_periodo' ] );
+        add_action( 'pre_get_posts', [ $this, 'aplicar_filtro_periodo' ] );
     }
 
     public function register_post_type(): void {
@@ -84,5 +90,58 @@ class SpotPostType {
                 }
                 break;
         }
+    }
+
+    /** Oculta el desplegable nativo de fechas de WP en el listado de Spots */
+    public function disable_months_dropdown( bool $disable, string $post_type ): bool {
+        return self::POST_TYPE === $post_type ? true : $disable;
+    }
+
+    /** Desplegable de filtro por Periodo, sustituyendo al de fechas */
+    public function render_filtro_periodo(): void {
+        global $typenow;
+        if ( self::POST_TYPE !== $typenow ) {
+            return;
+        }
+
+        $periodos = get_posts( [
+            'post_type'      => PeriodoPostType::POST_TYPE,
+            'post_status'    => PeriodoService::POST_STATUSES,
+            'posts_per_page' => -1,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+        ] );
+
+        $seleccionado = absint( $_GET['sf_filtro_periodo'] ?? 0 );
+        ?>
+        <select name="sf_filtro_periodo">
+            <option value="0"><?php esc_html_e( '— Todos los periodos —', 'shotfest-votaciones' ); ?></option>
+            <?php foreach ( $periodos as $p ) : ?>
+                <option value="<?php echo esc_attr( (string) $p->ID ); ?>" <?php selected( $seleccionado, $p->ID ); ?>>
+                    <?php echo esc_html( $p->post_title ); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <?php
+    }
+
+    /** Aplica el filtro de Periodo seleccionado a la consulta del listado de Spots */
+    public function aplicar_filtro_periodo( \WP_Query $query ): void {
+        global $pagenow, $typenow;
+        if ( ! is_admin() || 'edit.php' !== $pagenow || self::POST_TYPE !== $typenow || ! $query->is_main_query() ) {
+            return;
+        }
+
+        $periodo_id = absint( $_GET['sf_filtro_periodo'] ?? 0 );
+        if ( ! $periodo_id ) {
+            return;
+        }
+
+        $meta_query   = (array) $query->get( 'meta_query' );
+        $meta_query[] = [
+            'key'   => '_sf_spot_periodo_id',
+            'value' => $periodo_id,
+        ];
+        $query->set( 'meta_query', $meta_query );
     }
 }

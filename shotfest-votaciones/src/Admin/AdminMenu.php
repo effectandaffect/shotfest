@@ -5,16 +5,17 @@ namespace ShotfestVotaciones\Admin;
 
 use ShotfestVotaciones\Admin\Pages\UsuariosJuradoPage;
 use ShotfestVotaciones\Admin\Pages\ResultadosPage;
-use ShotfestVotaciones\Admin\Pages\ExportacionPage;
 use ShotfestVotaciones\Admin\Pages\EmailTextosPage;
 use ShotfestVotaciones\Domain\PeriodoService;
 use ShotfestVotaciones\Domain\ClasificacionService;
+use ShotfestVotaciones\Data\VotoRepository;
 
 class AdminMenu {
 
     public function __construct(
         private readonly PeriodoService       $periodo_service,
-        private readonly ClasificacionService $clasificacion_service
+        private readonly ClasificacionService $clasificacion_service,
+        private readonly VotoRepository       $voto_repo
     ) {}
 
     public function register(): void {
@@ -38,7 +39,15 @@ class AdminMenu {
             __( 'Jurado', 'shotfest-votaciones' ),
             'sf_gestionar_jurado',
             'sf-jurado',
-            [ new UsuariosJuradoPage(), 'render' ]
+            [ new UsuariosJuradoPage( $this->periodo_service, $this->voto_repo ), 'render' ]
+        );
+
+        add_submenu_page(
+            'shotfest-votaciones',
+            __( 'Categorías', 'shotfest-votaciones' ),
+            __( 'Categorías', 'shotfest-votaciones' ),
+            'sf_gestionar_spots',
+            'edit-tags.php?taxonomy=spot_categoria&post_type=sf_spot'
         );
 
         add_submenu_page(
@@ -48,15 +57,6 @@ class AdminMenu {
             'sf_ver_resultados',
             'sf-resultados',
             [ new ResultadosPage( $this->periodo_service, $this->clasificacion_service ), 'render' ]
-        );
-
-        add_submenu_page(
-            'shotfest-votaciones',
-            __( 'Exportar CSV', 'shotfest-votaciones' ),
-            __( 'Exportar CSV', 'shotfest-votaciones' ),
-            'sf_exportar_resultados',
-            'sf-exportar',
-            [ new ExportacionPage(), 'render' ]
         );
 
         add_submenu_page(

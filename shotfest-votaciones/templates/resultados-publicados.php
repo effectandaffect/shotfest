@@ -8,7 +8,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *   $clasificacion  array
  */
 
-$edicion = get_post_meta( $periodo->ID, '_sf_periodo_edicion_year', true );
+$edicion_id = get_post_meta( $periodo->ID, '_sf_periodo_edicion_id', true );
+$edicion    = $edicion_id ? get_post_meta( $edicion_id, '_sf_edicion_anio', true ) : '';
 ?>
 <div class="sf-resultados-wrap">
     <header class="sf-header">

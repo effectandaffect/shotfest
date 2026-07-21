@@ -7,22 +7,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *   $video_url string  URL de YouTube
  */
 
-if ( ! function_exists( 'sf_extract_video_id' ) ) {
-    function sf_extract_video_id( string $url ): string {
-        $patterns = [
-            '/youtube\.com\/watch\?v=([a-zA-Z0-9_\-]{11})/',
-            '/youtu\.be\/([a-zA-Z0-9_\-]{11})/',
-            '/youtube\.com\/embed\/([a-zA-Z0-9_\-]{11})/',
-        ];
-        foreach ( $patterns as $pattern ) {
-            if ( preg_match( $pattern, $url, $m ) ) {
-                return $m[1];
-            }
-        }
-        return '';
-    }
-}
-
 $video_id = sf_extract_video_id( $video_url ?? '' );
 if ( ! $video_id ) {
     echo '<p class="sf-aviso">' . esc_html__( 'Vídeo no disponible.', 'shotfest-votaciones' ) . '</p>';

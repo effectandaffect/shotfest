@@ -5,6 +5,7 @@ namespace ShotfestVotaciones\Admin\Metaboxes;
 
 use ShotfestVotaciones\PostTypes\SpotPostType;
 use ShotfestVotaciones\PostTypes\PeriodoPostType;
+use ShotfestVotaciones\PostTypes\EdicionPostType;
 
 class SpotMetabox {
 
@@ -44,9 +45,18 @@ class SpotMetabox {
 
         $periodos = get_posts( [
             'post_type'      => PeriodoPostType::POST_TYPE,
+            'post_status'    => [ 'publish', 'draft', 'pending', 'private' ],
             'posts_per_page' => -1,
             'orderby'        => 'title',
             'order'          => 'ASC',
+        ] );
+
+        $ediciones = get_posts( [
+            'post_type'      => EdicionPostType::POST_TYPE,
+            'post_status'    => [ 'publish', 'draft', 'pending', 'private' ],
+            'posts_per_page' => -1,
+            'orderby'        => 'title',
+            'order'          => 'DESC',
         ] );
         ?>
         <table class="form-table sf-metabox-table">
@@ -74,18 +84,46 @@ class SpotMetabox {
                 </td>
             </tr>
             <tr>
+                <th><label for="sf_spot_edicion_filtro"><?php esc_html_e( 'Filtrar por Edición', 'shotfest-votaciones' ); ?></label></th>
+                <td>
+                    <select id="sf_spot_edicion_filtro">
+                        <option value=""><?php esc_html_e( '— Todas —', 'shotfest-votaciones' ); ?></option>
+                        <?php foreach ( $ediciones as $edicion ) : ?>
+                            <option value="<?php echo esc_attr( $edicion->ID ); ?>"><?php echo esc_html( $edicion->post_title ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="description"><?php esc_html_e( 'Solo filtra las opciones del desplegable de Periodo, no se guarda en el spot.', 'shotfest-votaciones' ); ?></p>
+                </td>
+            </tr>
+            <tr>
                 <th><label for="sf_spot_periodo_id"><?php esc_html_e( 'Periodo de votación', 'shotfest-votaciones' ); ?></label></th>
                 <td>
                     <select id="sf_spot_periodo_id" name="sf_spot_periodo_id">
                         <option value=""><?php esc_html_e( '— Sin periodo —', 'shotfest-votaciones' ); ?></option>
                         <?php foreach ( $periodos as $periodo ) : ?>
-                            <option value="<?php echo esc_attr( $periodo->ID ); ?>" <?php selected( (string) $periodo_id, (string) $periodo->ID ); ?>>
+                            <?php $periodo_edicion_id = get_post_meta( $periodo->ID, '_sf_periodo_edicion_id', true ); ?>
+                            <option value="<?php echo esc_attr( $periodo->ID ); ?>" data-sf-edicion="<?php echo esc_attr( $periodo_edicion_id ); ?>" <?php selected( (string) $periodo_id, (string) $periodo->ID ); ?>>
                                 <?php echo esc_html( $periodo->post_title ); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </td>
             </tr>
+            <script>
+            (function(){
+                var filtro  = document.getElementById('sf_spot_edicion_filtro');
+                var periodo = document.getElementById('sf_spot_periodo_id');
+                if ( ! filtro || ! periodo ) { return; }
+                filtro.addEventListener('change', function(){
+                    var edicion = filtro.value;
+                    Array.prototype.forEach.call( periodo.options, function( opt ){
+                        var sfEdicion = opt.getAttribute('data-sf-edicion') || '';
+                        // Los periodos sin edición asignada (datos antiguos) siempre quedan visibles/seleccionables
+                        opt.hidden = !! ( edicion && sfEdicion && sfEdicion !== edicion );
+                    } );
+                } );
+            })();
+            </script>
             <tr>
                 <th><label for="sf_spot_orden"><?php esc_html_e( 'Orden de visualización', 'shotfest-votaciones' ); ?></label></th>
                 <td><input type="number" id="sf_spot_orden" name="sf_spot_orden" value="<?php echo esc_attr( $orden ); ?>" min="0" step="1" style="width:80px;"></td>
@@ -129,7 +167,8 @@ class SpotMetabox {
             $periodo_id = absint( $_POST['sf_spot_periodo_id'] );
             update_post_meta( $post_id, '_sf_spot_periodo_id', $periodo_id );
             if ( $periodo_id ) {
-                $year = get_post_meta( $periodo_id, '_sf_periodo_edicion_year', true );
+                $edicion_id = get_post_meta( $periodo_id, '_sf_periodo_edicion_id', true );
+                $year       = $edicion_id ? get_post_meta( $edicion_id, '_sf_edicion_anio', true ) : '';
                 update_post_meta( $post_id, '_sf_spot_edicion_year', $year );
             }
         }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ShotfestVotaciones\Cron;
 
 use ShotfestVotaciones\PostTypes\PeriodoPostType;
+use ShotfestVotaciones\Domain\PeriodoService;
 
 class RecordatorioScheduler {
 
@@ -18,9 +19,10 @@ class RecordatorioScheduler {
     }
 
     public function run(): void {
-        // Buscar periodos abiertos con fecha de cierre en los próximos 3 días
+        // Buscar periodos abiertos con fecha de cierre en los próximos 7 días
         $periodos = get_posts( [
             'post_type'      => PeriodoPostType::POST_TYPE,
+            'post_status'    => PeriodoService::POST_STATUSES,
             'posts_per_page' => -1,
             'meta_query'     => [
                 [
@@ -30,8 +32,8 @@ class RecordatorioScheduler {
             ],
         ] );
 
-        $ahora        = current_time( 'timestamp' );
-        $tres_dias    = 3 * DAY_IN_SECONDS;
+        $ahora       = current_time( 'timestamp' );
+        $siete_dias  = 7 * DAY_IN_SECONDS;
 
         foreach ( $periodos as $periodo ) {
             $fecha_fin = get_post_meta( $periodo->ID, '_sf_periodo_fecha_fin', true );
@@ -42,13 +44,13 @@ class RecordatorioScheduler {
             $ts_fin          = strtotime( $fecha_fin );
             $tiempo_restante = $ts_fin - $ahora;
 
-            if ( $tiempo_restante > 0 && $tiempo_restante <= $tres_dias ) {
+            if ( $tiempo_restante > 0 && $tiempo_restante <= $siete_dias ) {
                 $transient_key = 'sf_recordatorio_enviado_' . $periodo->ID;
                 if ( get_transient( $transient_key ) ) {
                     continue;
                 }
                 do_action( 'shotfest_send_recordatorio', $periodo->ID );
-                set_transient( $transient_key, 1, $tres_dias );
+                set_transient( $transient_key, 1, $siete_dias );
             }
         }
     }

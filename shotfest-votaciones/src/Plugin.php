@@ -5,10 +5,13 @@ namespace ShotfestVotaciones;
 
 use ShotfestVotaciones\PostTypes\SpotPostType;
 use ShotfestVotaciones\PostTypes\PeriodoPostType;
+use ShotfestVotaciones\PostTypes\EdicionPostType;
 use ShotfestVotaciones\Taxonomies\CategoriaTaxonomy;
 use ShotfestVotaciones\Admin\AdminMenu;
 use ShotfestVotaciones\Admin\Metaboxes\SpotMetabox;
 use ShotfestVotaciones\Admin\Metaboxes\PeriodoMetabox;
+use ShotfestVotaciones\Admin\Metaboxes\EdicionMetabox;
+use ShotfestVotaciones\Roles\CapabilitiesManager;
 use ShotfestVotaciones\Frontend\Shortcode;
 use ShotfestVotaciones\Frontend\VotoAjaxController;
 use ShotfestVotaciones\Data\VotoRepository;
@@ -16,6 +19,7 @@ use ShotfestVotaciones\Domain\VotoService;
 use ShotfestVotaciones\Domain\ClasificacionService;
 use ShotfestVotaciones\Domain\PeriodoService;
 use ShotfestVotaciones\Notifications\NotificationEvents;
+use ShotfestVotaciones\Notifications\EmailNotifier;
 use ShotfestVotaciones\Cron\RecordatorioScheduler;
 use ShotfestVotaciones\Admin\Pages\ExportacionPage;
 
@@ -25,11 +29,16 @@ class Plugin {
         // Tipos de contenido y taxonomías
         ( new SpotPostType() )->register();
         ( new PeriodoPostType() )->register();
+        ( new EdicionPostType() )->register();
         ( new CategoriaTaxonomy() )->register();
 
         // Metaboxes de admin
         ( new SpotMetabox() )->register();
         ( new PeriodoMetabox() )->register();
+        ( new EdicionMetabox() )->register();
+
+        // Sincroniza capabilities nuevas sin depender de reactivar el plugin
+        add_action( 'admin_init', [ CapabilitiesManager::class, 'maybe_sync' ] );
 
         // Servicios y repositorios
         $voto_repo          = new VotoRepository();
@@ -38,14 +47,15 @@ class Plugin {
         $clasificacion      = new ClasificacionService( $voto_repo );
 
         // Menú de administración
-        ( new AdminMenu( $periodo_service, $clasificacion ) )->register();
+        ( new AdminMenu( $periodo_service, $clasificacion, $voto_repo ) )->register();
 
         // Front-end: shortcode + AJAX
         ( new Shortcode( $periodo_service, $clasificacion, $voto_repo ) )->register();
         ( new VotoAjaxController( $voto_service ) )->register();
 
         // Notificaciones y cron
-        ( new NotificationEvents() )->register();
+        $email_notifier = new EmailNotifier( $periodo_service, $voto_repo );
+        ( new NotificationEvents( $email_notifier ) )->register();
         ( new RecordatorioScheduler() )->register();
 
         // Exportación CSV (admin-post.php)

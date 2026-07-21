@@ -67,7 +67,8 @@ class PeriodoPostType {
     public function render_column( string $column, int $post_id ): void {
         switch ( $column ) {
             case 'sf_edicion':
-                echo esc_html( get_post_meta( $post_id, '_sf_periodo_edicion_year', true ) ?: '—' );
+                $edicion_id = get_post_meta( $post_id, '_sf_periodo_edicion_id', true );
+                echo esc_html( $edicion_id ? get_the_title( (int) $edicion_id ) : '—' );
                 break;
             case 'sf_estado_p':
                 echo esc_html( get_post_meta( $post_id, '_sf_periodo_estado', true ) ?: '—' );
