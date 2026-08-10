@@ -9,8 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  *   $votos_emitidos  array<int,int>  spot_id => valor
  */
 
-$edicion_id = get_post_meta( $periodo->ID, '_sf_periodo_edicion_id', true );
-$edicion    = $edicion_id ? get_post_meta( $edicion_id, '_sf_edicion_anio', true ) : '';
+$edicion_id     = get_post_meta( $periodo->ID, '_sf_periodo_edicion_id', true );
+$edicion        = $edicion_id ? get_post_meta( $edicion_id, '_sf_edicion_anio', true ) : '';
+$edicion_titulo = $edicion_id ? get_the_title( $edicion_id ) : '';
 $fecha_fin  = get_post_meta( $periodo->ID, '_sf_periodo_fecha_fin', true );
 $total     = count( $spots );
 $votados   = count( array_filter( $spots, fn( $s ) => isset( $votos_emitidos[ $s->ID ] ) ) );
@@ -34,7 +35,15 @@ $has_categories = count( $spots_by_cat ) > 1;
 <div class="sf-home-jurado">
     <header class="sf-header">
         <div class="sf-header-left">
-            <p class="sf-header-label"><?php echo esc_html( sprintf( __( 'IV Festival de Spots en Cine · Edición %s', 'shotfest-votaciones' ), $edicion ) ); ?></p>
+            <p class="sf-header-label">
+                <?php
+                if ( $edicion_titulo ) {
+                    echo esc_html( $edicion ? sprintf( '%s · Edición %s', $edicion_titulo, $edicion ) : $edicion_titulo );
+                } else {
+                    esc_html_e( 'Festival de Spots en Cine', 'shotfest-votaciones' );
+                }
+                ?>
+            </p>
             <p class="sf-header-periodo"><?php echo esc_html( $periodo->post_title ); ?></p>
             <h1 class="sf-titulo"><?php esc_html_e( 'Vota los spots finalistas', 'shotfest-votaciones' ); ?></h1>
         </div>
