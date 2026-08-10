@@ -23,7 +23,7 @@ if ( ! $thumb_url ) {
 }
 ?>
 <article class="sf-spot-card" data-sf-cats="<?php echo esc_attr( implode( ',', $cat_slugs ?? [] ) ); ?>">
-    <div class="sf-spot-thumb">
+    <a href="<?php echo esc_url( $spot_url ); ?>" class="sf-spot-thumb">
         <?php if ( $thumb_url ) : ?>
             <img src="<?php echo esc_url( $thumb_url ); ?>" alt="<?php echo esc_attr( $spot->post_title ); ?>" loading="lazy">
         <?php else : ?>
@@ -31,7 +31,7 @@ if ( ! $thumb_url ) {
                 <div class="sf-spot-thumb-play"></div>
             </div>
         <?php endif; ?>
-    </div>
+    </a>
 
     <div class="sf-spot-info">
         <div>

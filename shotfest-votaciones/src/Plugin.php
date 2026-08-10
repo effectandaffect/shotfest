@@ -12,6 +12,7 @@ use ShotfestVotaciones\Admin\Metaboxes\SpotMetabox;
 use ShotfestVotaciones\Admin\Metaboxes\PeriodoMetabox;
 use ShotfestVotaciones\Admin\Metaboxes\EdicionMetabox;
 use ShotfestVotaciones\Roles\CapabilitiesManager;
+use ShotfestVotaciones\Roles\JuradoAccessRestriction;
 use ShotfestVotaciones\Frontend\Shortcode;
 use ShotfestVotaciones\Frontend\VotoAjaxController;
 use ShotfestVotaciones\Data\VotoRepository;
@@ -39,6 +40,9 @@ class Plugin {
 
         // Sincroniza capabilities nuevas sin depender de reactivar el plugin
         add_action( 'admin_init', [ CapabilitiesManager::class, 'maybe_sync' ] );
+
+        // El jurado nunca entra en wp-admin
+        ( new JuradoAccessRestriction() )->register();
 
         // Servicios y repositorios
         $voto_repo          = new VotoRepository();

@@ -314,6 +314,7 @@
 }
 
 .sf-spot-thumb {
+    display: block;
     flex: none;
     width: 220px;
     aspect-ratio: 16/9;
