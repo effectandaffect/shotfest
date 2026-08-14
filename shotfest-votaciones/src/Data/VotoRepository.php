@@ -13,35 +13,46 @@ class VotoRepository {
     /**
      * Registra un voto. Devuelve true si se insertó, false si ya existía (UNIQUE KEY).
      * Lanza \RuntimeException en caso de error SQL distinto de duplicado.
+     *
+     * Se usa INSERT IGNORE en lugar de $wpdb->insert(): la detección de duplicado
+     * dependía de buscar la palabra «Duplicate» en el mensaje de error de MySQL
+     * (last_error contiene el texto, no el código 1062), así que con un servidor de
+     * mensajes localizados el segundo voto acababa como «Error interno» en vez de
+     * «Ya has votado». La transacción envolvía un único INSERT, no aportaba nada, y
+     * en una tabla MyISAM no habría hecho nada en absoluto.
      */
     public function insertar( int $usuario_id, int $spot_id, int $periodo_id, int $valor, string $ip_hash = '' ): bool {
         global $wpdb;
 
-        $wpdb->query( 'START TRANSACTION' );
-
-        $resultado = $wpdb->insert(
-            $this->table(),
-            [
-                'usuario_id' => $usuario_id,
-                'spot_id'    => $spot_id,
-                'periodo_id' => $periodo_id,
-                'valor'      => $valor,
-                'ip_hash'    => $ip_hash,
-            ],
-            [ '%d', '%d', '%d', '%d', '%s' ]
+        $insertadas = $wpdb->query(
+            $wpdb->prepare(
+                "INSERT IGNORE INTO {$this->table()}
+                    (usuario_id, spot_id, periodo_id, valor, ip_hash)
+                 VALUES (%d, %d, %d, %d, %s)",
+                $usuario_id,
+                $spot_id,
+                $periodo_id,
+                $valor,
+                $ip_hash
+            )
         );
 
-        if ( false === $resultado ) {
-            $wpdb->query( 'ROLLBACK' );
-            // Error 1062 = Duplicate entry (UNIQUE constraint)
-            if ( str_contains( $wpdb->last_error, '1062' ) || str_contains( $wpdb->last_error, 'Duplicate' ) ) {
-                return false;
-            }
+        if ( false === $insertadas ) {
             throw new \RuntimeException( 'Error al registrar voto: ' . $wpdb->last_error );
         }
 
-        $wpdb->query( 'COMMIT' );
-        return true;
+        if ( $insertadas > 0 ) {
+            return true;
+        }
+
+        // 0 filas: lo esperable es que la UNIQUE KEY haya frenado un doble voto. Se
+        // confirma, porque INSERT IGNORE también degrada otros errores a warning y no
+        // queremos contar un fallo real como «ya habías votado».
+        if ( $this->ya_voto( $usuario_id, $spot_id, $periodo_id ) ) {
+            return false;
+        }
+
+        throw new \RuntimeException( 'El voto no se registró y no consta como duplicado: ' . $wpdb->last_error );
     }
 
     public function ya_voto( int $usuario_id, int $spot_id, int $periodo_id = 0 ): bool {
@@ -90,7 +101,9 @@ class VotoRepository {
             if ( ! isset( $resultado[ $sid ] ) ) {
                 $resultado[ $sid ] = [ 'si' => 0, 'no' => 0 ];
             }
-            if ( '1' === $row['valor'] ) {
+            // Cast explícito: get_results() devuelve las columnas numéricas como cadena,
+            // pero eso depende de la configuración del driver y no conviene asumirlo.
+            if ( 1 === (int) $row['valor'] ) {
                 $resultado[ $sid ]['si'] = (int) $row['total'];
             } else {
                 $resultado[ $sid ]['no'] = (int) $row['total'];
@@ -112,6 +125,28 @@ class VotoRepository {
         );
     }
 
+    /**
+     * IDs de los usuarios que han votado al menos un spot en el periodo.
+     *
+     * Se necesita la lista y no solo el total porque el recuento puede incluir
+     * usuarios ya eliminados: para saber si «ha votado todo el jurado» hay que cruzar
+     * con los miembros actuales, no comparar dos números de poblaciones distintas.
+     *
+     * @return int[]
+     */
+    public function usuarios_que_votaron( int $periodo_id ): array {
+        global $wpdb;
+
+        $ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT DISTINCT usuario_id FROM {$this->table()} WHERE periodo_id = %d",
+                $periodo_id
+            )
+        );
+
+        return array_map( 'intval', $ids ?: [] );
+    }
+
     /** Votos de un usuario en un periodo */
     public function votos_usuario( int $usuario_id, int $periodo_id ): array {
         global $wpdb;
@@ -126,7 +161,16 @@ class VotoRepository {
         ) ?: [];
     }
 
-    /** Exportación: todos los votos de un periodo con datos de usuario */
+    /**
+     * Exportación: todos los votos de un periodo con datos de usuario.
+     *
+     * LEFT JOIN, no INNER JOIN: wp_delete_user() no borra las filas de esta tabla, así
+     * que los votos de un miembro dado de baja se quedan huérfanos. Con INNER JOIN
+     * desaparecían de este export mientras seguían contando en la clasificación (que no
+     * cruza con usuarios), de modo que el ranking que reparte los premios y el CSV que
+     * sirve de traza no cuadraban. `user_login`/`user_email` llegan a null en ese caso
+     * y quien consume el método decide cómo etiquetarlos.
+     */
     public function exportar_periodo( int $periodo_id ): array {
         global $wpdb;
 
@@ -135,9 +179,9 @@ class VotoRepository {
                 "SELECT v.id, v.usuario_id, u.user_login, u.user_email,
                         v.spot_id, v.valor, v.fecha_voto
                  FROM {$this->table()} v
-                 INNER JOIN {$wpdb->users} u ON u.ID = v.usuario_id
+                 LEFT JOIN {$wpdb->users} u ON u.ID = v.usuario_id
                  WHERE v.periodo_id = %d
-                 ORDER BY u.user_login, v.spot_id",
+                 ORDER BY COALESCE(u.user_login, ''), v.usuario_id, v.spot_id",
                 $periodo_id
             ),
             ARRAY_A

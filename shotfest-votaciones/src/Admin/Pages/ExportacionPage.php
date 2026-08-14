@@ -9,6 +9,27 @@ use ShotfestVotaciones\Domain\PeriodoService;
 
 class ExportacionPage {
 
+    /**
+     * Neutraliza la inyección de fórmulas en CSV: Excel y LibreOffice interpretan como
+     * fórmula cualquier celda que empiece por =, +, - o @, así que un título de spot
+     * como «=HYPERLINK(...)» se ejecutaría al abrir el fichero. Se prefija un apóstrofo,
+     * que los dos programas tratan como «esto es texto».
+     */
+    private static function csv_safe( $valor ): string {
+        $valor = (string) $valor;
+
+        if ( '' !== $valor && str_contains( "=+-@\t\r", $valor[0] ) ) {
+            return "'" . $valor;
+        }
+
+        return $valor;
+    }
+
+    /** Escribe una fila del CSV con todas las celdas neutralizadas */
+    private static function fputcsv_safe( $handle, array $fila ): void {
+        fputcsv( $handle, array_map( [ self::class, 'csv_safe' ], $fila ), ';' );
+    }
+
     /** Resuelve el año de la edición a la que pertenece un periodo, o '' si no tiene edición asignada */
     private static function resolve_edicion_anio( int $periodo_id ): string {
         $edicion_id = get_post_meta( $periodo_id, '_sf_periodo_edicion_id', true );
@@ -59,7 +80,7 @@ class ExportacionPage {
 
             foreach ( $clasificacion as $cat_data ) {
                 foreach ( $cat_data['spots'] as $entry ) {
-                    fputcsv( $output, [
+                    self::fputcsv_safe( $output, [
                         $periodo->post_title,
                         $cat_data['categoria']->name,
                         $entry['posicion'],
@@ -68,7 +89,7 @@ class ExportacionPage {
                         $entry['si'],
                         $entry['no'],
                         $entry['shortlist'] ? 'Sí' : 'No',
-                    ], ';' );
+                    ] );
                 }
             }
         }
@@ -112,15 +133,27 @@ class ExportacionPage {
             $votos = $repo->exportar_periodo( $periodo->ID );
             foreach ( $votos as $voto ) {
                 $spot_title = get_the_title( (int) $voto['spot_id'] );
-                fputcsv( $output, [
+
+                // El voto se conserva aunque el miembro del jurado se haya dado de baja,
+                // para que el CSV cuadre con los recuentos de la clasificación.
+                $eliminado = null === $voto['user_login'];
+                $usuario   = $eliminado
+                    ? sprintf(
+                        /* translators: %d es el ID del usuario ya eliminado */
+                        __( '(usuario eliminado #%d)', 'shotfest-votaciones' ),
+                        (int) $voto['usuario_id']
+                    )
+                    : $voto['user_login'];
+
+                self::fputcsv_safe( $output, [
                     $periodo->post_title,
-                    $voto['user_login'],
-                    $voto['user_email'],
+                    $usuario,
+                    $eliminado ? '' : $voto['user_email'],
                     $voto['spot_id'],
                     $spot_title,
-                    '1' === $voto['valor'] ? 'Sí' : 'No',
+                    1 === (int) $voto['valor'] ? 'Sí' : 'No',
                     $voto['fecha_voto'],
-                ], ';' );
+                ] );
             }
         }
 

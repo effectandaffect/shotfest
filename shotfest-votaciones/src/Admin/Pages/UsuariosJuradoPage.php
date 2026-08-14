@@ -261,7 +261,7 @@ class UsuariosJuradoPage {
                             <a href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Editar', 'shotfest-votaciones' ); ?></a>
                             &nbsp;|&nbsp;
                             <a href="<?php echo esc_url( $delete_url ); ?>"
-                               onclick="return confirm('<?php echo esc_js( __( '¿Eliminar este miembro del jurado?', 'shotfest-votaciones' ) ); ?>')"
+                               onclick="return confirm('<?php echo esc_js( __( '¿Eliminar este miembro del jurado? Se elimina la cuenta de usuario, pero sus votos ya emitidos se conservan y siguen contando en los resultados.', 'shotfest-votaciones' ) ); ?>')"
                                style="color:#dc3545;">
                                 <?php esc_html_e( 'Eliminar', 'shotfest-votaciones' ); ?>
                             </a>
@@ -295,6 +295,33 @@ class UsuariosJuradoPage {
         return $labels;
     }
 
+    /**
+     * Genera un nombre de usuario libre a partir del nombre y los apellidos.
+     *
+     * `sanitize_user()` en modo estricto elimina todo lo que no sea ASCII, así que
+     * «José Muñoz» se quedaba en «jos.muoz»: se transliteran antes los acentos y la ñ.
+     * Y se comprueba que el login no exista: solo se validaba el email, de modo que un
+     * segundo «Juan García» hacía fallar wp_insert_user() con su error crudo.
+     */
+    private static function generar_login( string $nombre, string $apellidos ): string {
+        $partes = array_filter( [ $nombre, $apellidos ] );
+        $base   = sanitize_user( strtolower( remove_accents( implode( '.', $partes ) ) ), true );
+        $base   = trim( preg_replace( '/\s+/', '.', $base ), '.' );
+
+        if ( '' === $base ) {
+            $base = 'jurado';
+        }
+
+        $login  = $base;
+        $sufijo = 1;
+        while ( username_exists( $login ) ) {
+            $sufijo++;
+            $login = $base . $sufijo;
+        }
+
+        return $login;
+    }
+
     /** @return array{0:string,1:string} [mensaje, error] */
     private function procesar_alta(): array {
         $nombre    = sanitize_text_field( $_POST['sf_nombre'] ?? '' );
@@ -310,8 +337,7 @@ class UsuariosJuradoPage {
             return [ '', sprintf( __( 'Ya existe un usuario con el email %s.', 'shotfest-votaciones' ), $email ) ];
         }
 
-        $login    = sanitize_user( strtolower( $nombre . '.' . $apellidos ), true );
-        $login    = $login ?: sanitize_user( strtolower( $nombre ), true );
+        $login    = self::generar_login( $nombre, $apellidos );
         $password = wp_generate_password( 20, true );
 
         $user_id = wp_insert_user( [
@@ -341,13 +367,13 @@ class UsuariosJuradoPage {
 
             return [ sprintf(
                 __( 'Usuario %s creado correctamente. Se ha enviado un email con instrucciones de acceso.', 'shotfest-votaciones' ),
-                esc_html( $email )
+                $email
             ), '' ];
         }
 
         return [ sprintf(
             __( 'Usuario %s creado correctamente, sin enviar el email de bienvenida.', 'shotfest-votaciones' ),
-            esc_html( $email )
+            $email
         ), '' ];
     }
 
@@ -388,7 +414,7 @@ class UsuariosJuradoPage {
             }
         }
 
-        return [ sprintf( __( 'Datos de %s actualizados.', 'shotfest-votaciones' ), esc_html( trim( $nombre . ' ' . $apellidos ) ) ), '' ];
+        return [ sprintf( __( 'Datos de %s actualizados.', 'shotfest-votaciones' ), trim( $nombre . ' ' . $apellidos ) ), '' ];
     }
 
     /** @return array{0:string,1:string} [mensaje, error] */
@@ -405,6 +431,6 @@ class UsuariosJuradoPage {
         $name = $user->display_name;
         wp_delete_user( $user_id );
 
-        return [ sprintf( __( 'Miembro del jurado %s eliminado.', 'shotfest-votaciones' ), esc_html( $name ) ), '' ];
+        return [ sprintf( __( 'Miembro del jurado %s eliminado.', 'shotfest-votaciones' ), $name ), '' ];
     }
 }
