@@ -16,9 +16,70 @@ class PeriodoMetabox {
         'cerrado'   => 'Cerrado',
     ];
 
+    /** Transient donde se deja el aviso de solapamiento hasta el siguiente pintado de wp-admin */
+    const AVISO_SOLAPE = 'sf_aviso_periodos_solapados';
+
     public function register(): void {
         add_action( 'add_meta_boxes', [ $this, 'add_meta_boxes' ] );
         add_action( 'save_post_' . PeriodoPostType::POST_TYPE, [ $this, 'save' ] );
+        add_action( 'admin_notices', [ $this, 'mostrar_aviso_solape' ] );
+    }
+
+    /**
+     * Avisa si se acaba de abrir un periodo habiendo otro ya abierto.
+     *
+     * «Solo un periodo abierto a la vez» es una convención operativa sin ninguna
+     * validación detrás: `PeriodoService::get_periodo_abierto()` coge el primero que
+     * encuentra, así que con dos abiertos cuál gana es arbitrario. No se bloquea el
+     * guardado —puede haber motivos legítimos para un solape momentáneo— pero al menos
+     * deja de ser silencioso.
+     */
+    private function comprobar_solape( int $post_id ): void {
+        $otros = get_posts( [
+            'post_type'      => PeriodoPostType::POST_TYPE,
+            'post_status'    => PeriodoService::POST_STATUSES,
+            'posts_per_page' => -1,
+            'post__not_in'   => [ $post_id ],
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'   => '_sf_periodo_estado',
+                    'value' => 'abierto',
+                ],
+            ],
+        ] );
+
+        if ( empty( $otros ) ) {
+            return;
+        }
+
+        $titulos = array_map( 'get_the_title', $otros );
+        set_transient( self::AVISO_SOLAPE, $titulos, 60 );
+    }
+
+    public function mostrar_aviso_solape(): void {
+        $titulos = get_transient( self::AVISO_SOLAPE );
+        if ( ! $titulos ) {
+            return;
+        }
+
+        delete_transient( self::AVISO_SOLAPE );
+        ?>
+        <div class="notice notice-warning is-dismissible">
+            <p>
+                <strong><?php esc_html_e( 'Hay más de un periodo abierto a la vez.', 'shotfest-votaciones' ); ?></strong>
+                <?php
+                echo esc_html(
+                    sprintf(
+                        /* translators: %s son los títulos de los otros periodos abiertos */
+                        __( 'También sigue abierto: %s. La hoja de votación del jurado muestra solo uno, y cuál de ellos es arbitrario. Cierra el que no toque.', 'shotfest-votaciones' ),
+                        implode( ', ', (array) $titulos )
+                    )
+                );
+                ?>
+            </p>
+        </div>
+        <?php
     }
 
     public function add_meta_boxes(): void {
@@ -164,6 +225,8 @@ class PeriodoMetabox {
         if ( 'abierto' === $nuevo_estado && 'abierto' !== $estado_anterior ) {
             // Reabrir un periodo permite que vuelva a avisarse cuando el jurado lo complete
             delete_post_meta( $post_id, NotificationEvents::META_AVISO_ENVIADO );
+
+            $this->comprobar_solape( $post_id );
 
             if ( $enviar_email ) {
                 do_action( 'shotfest_periodo_abierto', $post_id );
