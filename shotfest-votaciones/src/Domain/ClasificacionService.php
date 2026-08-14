@@ -8,9 +8,24 @@ use ShotfestVotaciones\Taxonomies\CategoriaTaxonomy;
 
 class ClasificacionService {
 
+    /** term_id ficticio para el grupo de spots sin categoría asignada */
+    const SIN_CATEGORIA_ID = 0;
+
     public function __construct(
         private readonly VotoRepository $repo
     ) {}
+
+    /**
+     * Pseudo-término para agrupar los spots sin categoría. Expone `term_id` y `name`,
+     * que es todo lo que consumen la pantalla de Resultados y la exportación CSV.
+     */
+    private static function categoria_sin_asignar(): object {
+        return (object) [
+            'term_id' => self::SIN_CATEGORIA_ID,
+            'slug'    => '_sin_cat',
+            'name'    => __( 'Sin categoría', 'shotfest-votaciones' ),
+        ];
+    }
 
     /**
      * Devuelve la clasificación completa de un periodo, agrupada por categoría.
@@ -40,7 +55,11 @@ class ClasificacionService {
         foreach ( $spots as $spot ) {
             $categorias = wp_get_post_terms( $spot->ID, CategoriaTaxonomy::TAXONOMY );
             if ( is_wp_error( $categorias ) || empty( $categorias ) ) {
-                $categorias = [];
+                // Un spot sin categoría se agrupa aparte en vez de desaparecer: antes el
+                // bucle de abajo no llegaba a ejecutarse y el spot no salía en la
+                // clasificación, ni en la pantalla de Resultados, ni en los CSV — aunque
+                // la hoja del jurado sí lo mostraba y por tanto sí se votaba.
+                $categorias = [ self::categoria_sin_asignar() ];
             }
             // Un spot puede pertenecer a varias categorías
             foreach ( $categorias as $cat ) {

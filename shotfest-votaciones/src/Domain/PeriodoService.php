@@ -149,10 +149,20 @@ class PeriodoService {
         return $periodos[0] ?? null;
     }
 
-    /** Devuelve los spots disponibles para votación en un periodo dado */
+    /**
+     * Devuelve los spots disponibles para votación en un periodo dado.
+     *
+     * `post_status` explícito por el mismo motivo que en las consultas de Periodo: sin
+     * él `get_posts()` solo trae `publish`. Como el flujo de negocio del spot vive en el
+     * meta `_sf_spot_estado` y no en `post_status` (decisión deliberada, ver
+     * PLAN_TECNICO.md), un spot marcado «Disponible para votación» pero guardado con
+     * «Guardar borrador» no llegaba nunca al jurado, y en el listado del admin se veía
+     * con su estado correcto: imposible de detectar mirando.
+     */
     public function get_spots_del_periodo( int $periodo_id ): array {
         return get_posts( [
             'post_type'      => SpotPostType::POST_TYPE,
+            'post_status'    => self::POST_STATUSES,
             'posts_per_page' => -1,
             'orderby'        => 'title',
             'order'          => 'ASC',
@@ -170,10 +180,11 @@ class PeriodoService {
         ] );
     }
 
-    /** Todos los spots de un periodo (independientemente del estado) */
+    /** Todos los spots de un periodo (independientemente del estado de negocio) */
     public function get_todos_spots_del_periodo( int $periodo_id ): array {
         return get_posts( [
             'post_type'      => SpotPostType::POST_TYPE,
+            'post_status'    => self::POST_STATUSES,
             'posts_per_page' => -1,
             'orderby'        => 'title',
             'order'          => 'ASC',
