@@ -44,7 +44,7 @@ class EmailNotifier {
      * Jurado de la edición a la que pertenece el periodo. Si el periodo no tiene
      * edición asignada (dato antiguo), se envía a todo el jurado como antes.
      */
-    private function jurado_del_periodo( int $periodo_id ): array {
+    public function jurado_del_periodo( int $periodo_id ): array {
         $edicion_id = get_post_meta( $periodo_id, '_sf_periodo_edicion_id', true );
         if ( ! $edicion_id ) {
             return get_users( [ 'role' => 'jurado_shotfest' ] );

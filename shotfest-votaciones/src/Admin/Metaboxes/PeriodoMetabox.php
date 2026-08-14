@@ -159,8 +159,13 @@ class PeriodoMetabox {
 
         // Disparar evento de apertura si el estado cambia a "abierto" (salvo que se haya cancelado el envío de email)
         $enviar_email = ( $_POST['sf_enviar_email_apertura'] ?? '1' ) !== '0';
-        if ( 'abierto' === $nuevo_estado && 'abierto' !== $estado_anterior && $enviar_email ) {
-            do_action( 'shotfest_periodo_abierto', $post_id );
+        if ( 'abierto' === $nuevo_estado && 'abierto' !== $estado_anterior ) {
+            // Reabrir un periodo permite que vuelva a avisarse cuando el jurado lo complete
+            delete_post_meta( $post_id, NotificationEvents::META_AVISO_ENVIADO );
+
+            if ( $enviar_email ) {
+                do_action( 'shotfest_periodo_abierto', $post_id );
+            }
         }
     }
 }
