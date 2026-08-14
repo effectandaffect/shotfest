@@ -32,16 +32,20 @@ class RecordatorioScheduler {
             ],
         ] );
 
-        $ahora       = current_time( 'timestamp' );
+        // time() y PeriodoService::fecha_a_timestamp() están los dos en epoch real. Antes se
+        // mezclaba current_time('timestamp') (hora local) con strtotime() (UTC, porque WP fija
+        // la zona de PHP a UTC), un desfase igual al offset del sitio: 2 h en verano.
+        $ahora       = time();
         $siete_dias  = 7 * DAY_IN_SECONDS;
 
         foreach ( $periodos as $periodo ) {
-            $fecha_fin = get_post_meta( $periodo->ID, '_sf_periodo_fecha_fin', true );
-            if ( ! $fecha_fin ) {
+            $ts_fin = PeriodoService::fecha_a_timestamp(
+                (string) get_post_meta( $periodo->ID, '_sf_periodo_fecha_fin', true )
+            );
+            if ( null === $ts_fin ) {
                 continue;
             }
 
-            $ts_fin          = strtotime( $fecha_fin );
             $tiempo_restante = $ts_fin - $ahora;
 
             if ( $tiempo_restante > 0 && $tiempo_restante <= $siete_dias ) {

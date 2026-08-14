@@ -36,8 +36,9 @@ class PeriodoMetabox {
         wp_nonce_field( 'sf_periodo_save', 'sf_periodo_nonce' );
         echo '<input type="hidden" name="sf_enviar_email_apertura" id="sf_enviar_email_apertura" value="1">';
 
-        $fecha_ini  = get_post_meta( $post->ID, '_sf_periodo_fecha_inicio', true );
-        $fecha_fin  = get_post_meta( $post->ID, '_sf_periodo_fecha_fin', true );
+        // Las fechas se guardan como 'Y-m-d H:i:s' pero el input las necesita como 'Y-m-dTH:i'
+        $fecha_ini  = PeriodoService::fecha_para_input( (string) get_post_meta( $post->ID, '_sf_periodo_fecha_inicio', true ) );
+        $fecha_fin  = PeriodoService::fecha_para_input( (string) get_post_meta( $post->ID, '_sf_periodo_fecha_fin', true ) );
         $estado     = get_post_meta( $post->ID, '_sf_periodo_estado', true ) ?: 'pendiente';
         $edicion_id = get_post_meta( $post->ID, '_sf_periodo_edicion_id', true );
         $publicados = get_post_meta( $post->ID, '_sf_periodo_resultados_publicados', true );
@@ -126,11 +127,22 @@ class PeriodoMetabox {
 
         $estado_anterior = get_post_meta( $post_id, '_sf_periodo_estado', true );
 
+        // Se normaliza a 'Y-m-d H:i:s' antes de persistir: el input envía «T» como
+        // separador y sin segundos, y las comparaciones de vigencia necesitan un
+        // formato único y parseable (ver PeriodoService::normalizar_fecha()).
         if ( isset( $_POST['sf_periodo_fecha_inicio'] ) ) {
-            update_post_meta( $post_id, '_sf_periodo_fecha_inicio', sanitize_text_field( $_POST['sf_periodo_fecha_inicio'] ) );
+            update_post_meta(
+                $post_id,
+                '_sf_periodo_fecha_inicio',
+                PeriodoService::normalizar_fecha( sanitize_text_field( wp_unslash( $_POST['sf_periodo_fecha_inicio'] ) ) )
+            );
         }
         if ( isset( $_POST['sf_periodo_fecha_fin'] ) ) {
-            update_post_meta( $post_id, '_sf_periodo_fecha_fin', sanitize_text_field( $_POST['sf_periodo_fecha_fin'] ) );
+            update_post_meta(
+                $post_id,
+                '_sf_periodo_fecha_fin',
+                PeriodoService::normalizar_fecha( sanitize_text_field( wp_unslash( $_POST['sf_periodo_fecha_fin'] ) ) )
+            );
         }
         if ( isset( $_POST['sf_periodo_edicion_id'] ) ) {
             update_post_meta( $post_id, '_sf_periodo_edicion_id', absint( $_POST['sf_periodo_edicion_id'] ) );

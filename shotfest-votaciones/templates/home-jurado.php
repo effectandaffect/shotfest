@@ -52,11 +52,13 @@ $has_categories = count( $spots_by_cat ) > 1;
         </a>
     </header>
 
-    <?php if ( $fecha_fin ) : ?>
+    <?php
+    $ts_fin = \ShotfestVotaciones\Domain\PeriodoService::fecha_a_timestamp( (string) $fecha_fin );
+    if ( null !== $ts_fin ) : ?>
         <p class="sf-fecha-cierre">
             <?php echo esc_html( sprintf(
                 __( 'La votación cierra el %s', 'shotfest-votaciones' ),
-                date_i18n( 'j \d\e F \d\e Y', strtotime( $fecha_fin ) )
+                wp_date( 'j \d\e F \d\e Y', $ts_fin )
             ) ); ?>
         </p>
     <?php endif; ?>

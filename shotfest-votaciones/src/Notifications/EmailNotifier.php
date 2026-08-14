@@ -23,6 +23,17 @@ class EmailNotifier {
         return str_replace( $keys, array_values( $vars ), $template );
     }
 
+    /**
+     * Formatea una fecha de periodo para mostrarla en un email, en la zona horaria del sitio.
+     * `wp_date()` sobre un timestamp real, en vez de `date_i18n(strtotime(...))`, que aplicaba
+     * el offset dos veces.
+     */
+    private function formatear_fecha( string $fecha ): string {
+        $ts = PeriodoService::fecha_a_timestamp( $fecha );
+
+        return null === $ts ? '' : (string) wp_date( get_option( 'date_format' ) . ' H:i', $ts );
+    }
+
     /** Resuelve el año de la edición a la que pertenece un periodo, o '' si no tiene edición asignada */
     private function resolve_edicion_anio( int $periodo_id ): string {
         $edicion_id = get_post_meta( $periodo_id, '_sf_periodo_edicion_id', true );
@@ -82,7 +93,7 @@ class EmailNotifier {
                 'nombre'         => $user->display_name,
                 'edicion'        => (string) $edicion,
                 'url_votaciones' => home_url( '/' ),
-                'fecha_fin'      => $fecha_fin ? date_i18n( get_option( 'date_format' ) . ' H:i', strtotime( $fecha_fin ) ) : '',
+                'fecha_fin'      => $this->formatear_fecha( (string) $fecha_fin ),
             ] );
 
             wp_mail(
@@ -113,7 +124,7 @@ class EmailNotifier {
                 'nombre'         => $user->display_name,
                 'edicion'        => (string) $edicion,
                 'url_votaciones' => home_url( '/' ),
-                'fecha_fin'      => $fecha_fin ? date_i18n( get_option( 'date_format' ) . ' H:i', strtotime( $fecha_fin ) ) : '',
+                'fecha_fin'      => $this->formatear_fecha( (string) $fecha_fin ),
             ] );
 
             wp_mail(

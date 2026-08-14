@@ -11,6 +11,82 @@ class PeriodoService {
     /** Estados de post considerados válidos al listar Periodos/Ediciones para selección — un CPT guardado como borrador debe seguir siendo utilizable */
     const POST_STATUSES = [ 'publish', 'draft', 'pending', 'private' ];
 
+    /** Formato canónico en el que se persisten las fechas de periodo en post meta */
+    const FORMATO_FECHA = 'Y-m-d H:i:s';
+
+    /**
+     * Normaliza una fecha de formulario al formato canónico `Y-m-d H:i:s`.
+     *
+     * Los `<input type="datetime-local">` envían `2026-08-13T08:00` (con «T» y sin
+     * segundos). Guardar eso tal cual hacía que las comparaciones contra
+     * `current_time('mysql')` se resolvieran byte a byte: el espacio (0x20) siempre
+     * es menor que la «T» (0x54), así que un periodo se consideraba «aún no iniciado»
+     * durante todo su primer día. Se aceptan ambas formas para tolerar datos ya
+     * guardados con el formato antiguo.
+     *
+     * @return string Fecha normalizada, o '' si el valor no es una fecha interpretable.
+     */
+    public static function normalizar_fecha( string $valor ): string {
+        $valor = trim( str_replace( 'T', ' ', $valor ) );
+        if ( '' === $valor ) {
+            return '';
+        }
+
+        // `datetime-local` omite los segundos salvo que se le pida step="1"
+        if ( 16 === strlen( $valor ) ) {
+            $valor .= ':00';
+        }
+
+        $fecha = \DateTimeImmutable::createFromFormat( self::FORMATO_FECHA, $valor, wp_timezone() );
+
+        return ( $fecha && $fecha->format( self::FORMATO_FECHA ) === $valor ) ? $valor : '';
+    }
+
+    /**
+     * Convierte una fecha guardada en timestamp Unix real, interpretándola en la zona
+     * horaria configurada en WordPress (las fechas del metabox son hora local, no UTC).
+     */
+    public static function fecha_a_timestamp( string $valor ): ?int {
+        $normalizada = self::normalizar_fecha( $valor );
+        if ( '' === $normalizada ) {
+            return null;
+        }
+
+        $fecha = \DateTimeImmutable::createFromFormat( self::FORMATO_FECHA, $normalizada, wp_timezone() );
+
+        return $fecha ? $fecha->getTimestamp() : null;
+    }
+
+    /** Devuelve la fecha en el formato que espera un `<input type="datetime-local">`. */
+    public static function fecha_para_input( string $valor ): string {
+        $normalizada = self::normalizar_fecha( $valor );
+
+        return '' === $normalizada ? '' : str_replace( ' ', 'T', substr( $normalizada, 0, 16 ) );
+    }
+
+    /**
+     * ¿Estamos ahora mismo dentro de la ventana de fechas del periodo?
+     *
+     * Cada límite se evalúa por separado a propósito: antes se exigía que estuvieran
+     * las dos fechas para comprobar cualquiera de ellas, así que un periodo con solo
+     * fecha de cierre no se cerraba nunca.
+     */
+    public function esta_vigente( int $periodo_id ): bool {
+        $ahora  = time();
+        $inicio = self::fecha_a_timestamp( (string) get_post_meta( $periodo_id, '_sf_periodo_fecha_inicio', true ) );
+        $fin    = self::fecha_a_timestamp( (string) get_post_meta( $periodo_id, '_sf_periodo_fecha_fin', true ) );
+
+        if ( null !== $inicio && $ahora < $inicio ) {
+            return false;
+        }
+
+        if ( null !== $fin && $ahora > $fin ) {
+            return false;
+        }
+
+        return true;
+    }
+
     /** Devuelve el periodo abierto activo (el primero que encuentre), o null */
     public function get_periodo_abierto(): ?\WP_Post {
         $periodos = get_posts( [
@@ -30,15 +106,8 @@ class PeriodoService {
         }
 
         $periodo = $periodos[0];
-        $ahora   = current_time( 'mysql' );
-        $inicio  = get_post_meta( $periodo->ID, '_sf_periodo_fecha_inicio', true );
-        $fin     = get_post_meta( $periodo->ID, '_sf_periodo_fecha_fin', true );
 
-        if ( $inicio && $fin && ( $ahora < $inicio || $ahora > $fin ) ) {
-            return null;
-        }
-
-        return $periodo;
+        return $this->esta_vigente( $periodo->ID ) ? $periodo : null;
     }
 
     /** Devuelve el periodo abierto que contiene el spot dado */
@@ -58,15 +127,7 @@ class PeriodoService {
             return null;
         }
 
-        $ahora  = current_time( 'mysql' );
-        $inicio = get_post_meta( $periodo_id, '_sf_periodo_fecha_inicio', true );
-        $fin    = get_post_meta( $periodo_id, '_sf_periodo_fecha_fin', true );
-
-        if ( $inicio && $fin && ( $ahora < $inicio || $ahora > $fin ) ) {
-            return null;
-        }
-
-        return $periodo;
+        return $this->esta_vigente( $periodo_id ) ? $periodo : null;
     }
 
     /** Comprueba si hay algún periodo con resultados publicados */
