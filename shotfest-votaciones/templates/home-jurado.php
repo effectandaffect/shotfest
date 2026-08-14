@@ -30,7 +30,9 @@ foreach ( $spots as $spot ) {
         $spots_by_cat[ '_sin_cat' ][ 'spots' ][] = $spot;
     }
 }
-$has_categories = count( $spots_by_cat ) > 1;
+// Basta con que haya una categoría real para mostrar las pestañas. Antes se exigía
+// count() > 1, así que con una sola categoría desaparecían y se caía a la barra de progreso.
+$has_categories = ! empty( array_diff( array_keys( $spots_by_cat ), [ '_sin_cat' ] ) );
 ?>
 <div class="sf-home-jurado">
     <header class="sf-header">

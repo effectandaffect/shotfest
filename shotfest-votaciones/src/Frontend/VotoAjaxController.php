@@ -20,7 +20,7 @@ class VotoAjaxController {
 
     public function emitir_voto(): void {
         // Nonce y capability
-        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'sf_emitir_voto' ) ) {
+        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'sf_emitir_voto' ) ) {
             Guard::json_error( __( 'Solicitud no válida.', 'shotfest-votaciones' ), 403 );
         }
 

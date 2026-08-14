@@ -115,7 +115,7 @@ class PeriodoMetabox {
     }
 
     public function save( int $post_id ): void {
-        if ( ! isset( $_POST['sf_periodo_nonce'] ) || ! wp_verify_nonce( $_POST['sf_periodo_nonce'], 'sf_periodo_save' ) ) {
+        if ( ! isset( $_POST['sf_periodo_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_periodo_nonce'] ) ), 'sf_periodo_save' ) ) {
             return;
         }
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -148,9 +148,11 @@ class PeriodoMetabox {
             update_post_meta( $post_id, '_sf_periodo_edicion_id', absint( $_POST['sf_periodo_edicion_id'] ) );
         }
 
+        // is_string() antes de array_key_exists(): con un array PHP 8 lanza TypeError
         $nuevo_estado = '';
-        if ( isset( $_POST['sf_periodo_estado'] ) && array_key_exists( $_POST['sf_periodo_estado'], self::ESTADOS ) ) {
-            $nuevo_estado = $_POST['sf_periodo_estado'];
+        $estado_post  = $_POST['sf_periodo_estado'] ?? null;
+        if ( is_string( $estado_post ) && array_key_exists( $estado_post, self::ESTADOS ) ) {
+            $nuevo_estado = $estado_post;
             update_post_meta( $post_id, '_sf_periodo_estado', $nuevo_estado );
         }
 

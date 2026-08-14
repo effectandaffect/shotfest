@@ -45,7 +45,7 @@ class ExportacionPage {
         if ( ! current_user_can( 'sf_exportar_resultados' ) ) {
             wp_die( esc_html__( 'Acceso denegado.', 'shotfest-votaciones' ) );
         }
-        if ( ! isset( $_POST['sf_export_nonce'] ) || ! wp_verify_nonce( $_POST['sf_export_nonce'], 'sf_export_clasificacion' ) ) {
+        if ( ! isset( $_POST['sf_export_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_export_nonce'] ) ), 'sf_export_clasificacion' ) ) {
             wp_die( esc_html__( 'Solicitud no válida.', 'shotfest-votaciones' ) );
         }
 
@@ -102,7 +102,7 @@ class ExportacionPage {
         if ( ! current_user_can( 'sf_exportar_resultados' ) ) {
             wp_die( esc_html__( 'Acceso denegado.', 'shotfest-votaciones' ) );
         }
-        if ( ! isset( $_POST['sf_export_nonce'] ) || ! wp_verify_nonce( $_POST['sf_export_nonce'], 'sf_export_votos' ) ) {
+        if ( ! isset( $_POST['sf_export_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_export_nonce'] ) ), 'sf_export_votos' ) ) {
             wp_die( esc_html__( 'Solicitud no válida.', 'shotfest-votaciones' ) );
         }
 

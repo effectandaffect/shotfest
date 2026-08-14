@@ -24,11 +24,11 @@ class UsuariosJuradoPage {
         $error   = '';
         $editado = false;
 
-        if ( isset( $_POST['sf_alta_jurado_nonce'] ) && wp_verify_nonce( $_POST['sf_alta_jurado_nonce'], 'sf_alta_jurado' ) ) {
+        if ( isset( $_POST['sf_alta_jurado_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_alta_jurado_nonce'] ) ), 'sf_alta_jurado' ) ) {
             [ $mensaje, $error ] = $this->procesar_alta();
         }
 
-        if ( isset( $_POST['sf_editar_jurado_nonce'] ) && wp_verify_nonce( $_POST['sf_editar_jurado_nonce'], 'sf_editar_jurado' ) ) {
+        if ( isset( $_POST['sf_editar_jurado_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_editar_jurado_nonce'] ) ), 'sf_editar_jurado' ) ) {
             [ $mensaje, $error ] = $this->procesar_edicion();
             if ( $mensaje ) {
                 $editado = true;
@@ -37,7 +37,7 @@ class UsuariosJuradoPage {
 
         if ( isset( $_GET['sf_action'], $_GET['user_id'], $_GET['_wpnonce'] )
              && 'eliminar' === $_GET['sf_action']
-             && wp_verify_nonce( $_GET['_wpnonce'], 'sf_eliminar_jurado_' . absint( $_GET['user_id'] ) )
+             && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'sf_eliminar_jurado_' . absint( $_GET['user_id'] ) )
         ) {
             [ $mensaje, $error ] = $this->procesar_eliminacion( absint( $_GET['user_id'] ) );
         }

@@ -13,6 +13,7 @@ use ShotfestVotaciones\Admin\Metaboxes\PeriodoMetabox;
 use ShotfestVotaciones\Admin\Metaboxes\EdicionMetabox;
 use ShotfestVotaciones\Roles\CapabilitiesManager;
 use ShotfestVotaciones\Roles\JuradoAccessRestriction;
+use ShotfestVotaciones\Roles\JuradoRole;
 use ShotfestVotaciones\Frontend\Shortcode;
 use ShotfestVotaciones\Frontend\VotoAjaxController;
 use ShotfestVotaciones\Data\VotoRepository;
@@ -40,6 +41,7 @@ class Plugin {
 
         // Sincroniza capabilities nuevas sin depender de reactivar el plugin
         add_action( 'admin_init', [ CapabilitiesManager::class, 'maybe_sync' ] );
+        add_action( 'admin_init', [ JuradoRole::class, 'maybe_sync' ] );
 
         // El jurado nunca entra en wp-admin
         ( new JuradoAccessRestriction() )->register();
@@ -66,30 +68,52 @@ class Plugin {
         ExportacionPage::register_actions();
 
         // Cargar estilos/scripts
-        add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
+        add_action( 'wp_enqueue_scripts', [ $this, 'register_frontend_assets' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
     }
 
-    public function enqueue_frontend_assets(): void {
-        wp_enqueue_style(
+    /**
+     * Registra los assets del front sin encolarlos. Los encola el propio shortcode al
+     * renderizarse (ver Plugin::enqueue_frontend()), en vez de cargarse en todas las
+     * páginas del sitio. Se registran aquí y no dentro del shortcode porque
+     * `wp_enqueue_scripts` es el hook donde WordPress espera las declaraciones.
+     */
+    public function register_frontend_assets(): void {
+        wp_register_style(
             'sf-frontend',
             SF_PLUGIN_URL . 'assets/css/frontend.css',
             [],
             SF_VERSION
         );
 
+        wp_register_script(
+            'sf-votacion',
+            SF_PLUGIN_URL . 'assets/js/votacion.js',
+            [],
+            SF_VERSION,
+            true
+        );
+
         if ( is_user_logged_in() ) {
-            wp_enqueue_script(
-                'sf-votacion',
-                SF_PLUGIN_URL . 'assets/js/votacion.js',
-                [],
-                SF_VERSION,
-                true
-            );
             wp_localize_script( 'sf-votacion', 'sfAjax', [
                 'ajaxurl' => admin_url( 'admin-ajax.php' ),
                 'nonce'   => wp_create_nonce( 'sf_emitir_voto' ),
             ] );
+        }
+    }
+
+    /**
+     * Encola los assets ya registrados. Se llama desde el shortcode, que es el único
+     * punto que sabe con certeza que hacen falta: mirar `has_shortcode()` sobre el
+     * contenido del post daría falsos negativos si se inserta desde un bloque
+     * reutilizable o una plantilla del theme. El script va al footer, así que encolarlo
+     * durante el renderizado del contenido sigue llegando a tiempo.
+     */
+    public static function enqueue_frontend(): void {
+        wp_enqueue_style( 'sf-frontend' );
+
+        if ( is_user_logged_in() ) {
+            wp_enqueue_script( 'sf-votacion' );
         }
     }
 

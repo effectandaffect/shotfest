@@ -20,6 +20,9 @@ class Shortcode {
     }
 
     public function render( array $atts ): string {
+        // Los assets solo se cargan donde está el shortcode, no en todo el sitio
+        \ShotfestVotaciones\Plugin::enqueue_frontend();
+
         // Pantalla de login si no está autenticado
         if ( ! is_user_logged_in() ) {
             return $this->render_login();

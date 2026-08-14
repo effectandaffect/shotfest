@@ -137,7 +137,7 @@ class SpotMetabox {
     }
 
     public function save( int $post_id ): void {
-        if ( ! isset( $_POST['sf_spot_nonce'] ) || ! wp_verify_nonce( $_POST['sf_spot_nonce'], 'sf_spot_save' ) ) {
+        if ( ! isset( $_POST['sf_spot_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_spot_nonce'] ) ), 'sf_spot_save' ) ) {
             return;
         }
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -159,17 +159,24 @@ class SpotMetabox {
             }
         }
 
-        if ( isset( $_POST['sf_spot_estado'] ) && array_key_exists( $_POST['sf_spot_estado'], self::ESTADOS ) ) {
-            update_post_meta( $post_id, '_sf_spot_estado', $_POST['sf_spot_estado'] );
+        // is_string() antes de array_key_exists(): con `sf_spot_estado[]=x` el argumento
+        // llegaría como array y PHP 8 lanza TypeError, es decir un 500.
+        $estado = $_POST['sf_spot_estado'] ?? null;
+        if ( is_string( $estado ) && array_key_exists( $estado, self::ESTADOS ) ) {
+            update_post_meta( $post_id, '_sf_spot_estado', $estado );
         }
 
         if ( isset( $_POST['sf_spot_periodo_id'] ) ) {
             $periodo_id = absint( $_POST['sf_spot_periodo_id'] );
             update_post_meta( $post_id, '_sf_spot_periodo_id', $periodo_id );
+
             if ( $periodo_id ) {
                 $edicion_id = get_post_meta( $periodo_id, '_sf_periodo_edicion_id', true );
                 $year       = $edicion_id ? get_post_meta( $edicion_id, '_sf_edicion_anio', true ) : '';
                 update_post_meta( $post_id, '_sf_spot_edicion_year', $year );
+            } else {
+                // Al volver a «Sin periodo» hay que limpiar el año, o queda el anterior
+                update_post_meta( $post_id, '_sf_spot_edicion_year', '' );
             }
         }
 

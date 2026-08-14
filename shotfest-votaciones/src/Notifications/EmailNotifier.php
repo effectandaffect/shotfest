@@ -34,6 +34,26 @@ class EmailNotifier {
         return null === $ts ? '' : (string) wp_date( get_option( 'date_format' ) . ' H:i', $ts );
     }
 
+    /**
+     * Año de la edición más reciente asignada al miembro del jurado.
+     *
+     * El email de bienvenida usaba `date('Y')`, que además de ignorar la zona horaria de
+     * WordPress da el año en curso: alguien dado de alta en diciembre para la edición
+     * siguiente recibía el año anterior. Se cae al año actual solo si no tiene ninguna
+     * edición asignada.
+     */
+    private function anio_del_jurado( int $user_id ): string {
+        $anios = [];
+        foreach ( array_map( 'intval', get_user_meta( $user_id, '_sf_jurado_edicion_id', false ) ) as $edicion_id ) {
+            $anio = (int) get_post_meta( $edicion_id, '_sf_edicion_anio', true );
+            if ( $anio > 0 ) {
+                $anios[] = $anio;
+            }
+        }
+
+        return (string) ( $anios ? max( $anios ) : wp_date( 'Y' ) );
+    }
+
     /** Resuelve el año de la edición a la que pertenece un periodo, o '' si no tiene edición asignada */
     private function resolve_edicion_anio( int $periodo_id ): string {
         $edicion_id = get_post_meta( $periodo_id, '_sf_periodo_edicion_id', true );
@@ -70,7 +90,7 @@ class EmailNotifier {
 
         $template = $this->get_template( 'sf_email_alta_jurado' );
         $cuerpo   = $this->render( $template, [
-            'edicion'        => (string) date( 'Y' ),
+            'edicion'        => $this->anio_del_jurado( $user_id ),
             'link_password'  => $reset_url,
             'url_votaciones' => home_url( '/' ),
         ] );

@@ -38,7 +38,7 @@ class EdicionMetabox {
     }
 
     public function save( int $post_id ): void {
-        if ( ! isset( $_POST['sf_edicion_nonce'] ) || ! wp_verify_nonce( $_POST['sf_edicion_nonce'], 'sf_edicion_save' ) ) {
+        if ( ! isset( $_POST['sf_edicion_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_edicion_nonce'] ) ), 'sf_edicion_save' ) ) {
             return;
         }
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {

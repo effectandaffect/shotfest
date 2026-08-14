@@ -28,7 +28,7 @@ class EmailTextosPage {
             wp_die( esc_html__( 'Acceso denegado.', 'shotfest-votaciones' ) );
         }
 
-        if ( isset( $_POST['sf_emails_nonce'] ) && wp_verify_nonce( $_POST['sf_emails_nonce'], 'sf_guardar_emails' ) ) {
+        if ( isset( $_POST['sf_emails_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sf_emails_nonce'] ) ), 'sf_guardar_emails' ) ) {
             $this->guardar();
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Textos guardados.', 'shotfest-votaciones' ) . '</p></div>';
         }
