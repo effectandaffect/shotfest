@@ -24,9 +24,31 @@ define( 'SF_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SF_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SF_TEXT_DOMAIN', 'shotfest-votaciones' );
 
-// Autoload vía Composer
+/*
+ * Carga de clases. Se prefiere el autoload de Composer (optimizado), pero el plugin
+ * no puede depender de que exista: `vendor/` está en .gitignore, así que un despliegue
+ * por copia de la carpeta del repositorio se quedaría sin ningún cargador de clases y
+ * el `new Plugin()` de más abajo tumbaría el sitio entero con un fatal error, wp-admin
+ * incluido. El autoloader de reserva cubre ese caso sin necesidad de `composer install`.
+ */
 if ( file_exists( SF_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
     require_once SF_PLUGIN_DIR . 'vendor/autoload.php';
+} else {
+    spl_autoload_register(
+        static function ( string $class ): void {
+            $prefix = 'ShotfestVotaciones\\';
+            if ( ! str_starts_with( $class, $prefix ) ) {
+                return;
+            }
+
+            $relative = substr( $class, strlen( $prefix ) );
+            $path     = SF_PLUGIN_DIR . 'src/' . str_replace( '\\', '/', $relative ) . '.php';
+
+            if ( is_readable( $path ) ) {
+                require_once $path;
+            }
+        }
+    );
 }
 
 use ShotfestVotaciones\Activation\Activator;
@@ -66,8 +88,24 @@ function sf_extract_video_id( string $url ): string {
 }
 
 function shotfest_votaciones_run(): void {
+    // Última red de seguridad: si por lo que sea no hay cargador de clases, avisar en
+    // wp-admin en vez de reventar el sitio con un "Class not found".
+    if ( ! class_exists( Plugin::class ) ) {
+        add_action( 'admin_notices', 'shotfest_votaciones_aviso_carga' );
+        return;
+    }
+
     $plugin = new Plugin();
     $plugin->run();
+}
+
+function shotfest_votaciones_aviso_carga(): void {
+    echo '<div class="notice notice-error"><p><strong>ShotFest Votaciones:</strong> ';
+    echo esc_html__(
+        'no se han podido cargar las clases del plugin. Falta la carpeta src/ o vendor/autoload.php: revisa que el despliegue haya subido el plugin completo.',
+        'shotfest-votaciones'
+    );
+    echo '</p></div>';
 }
 
 shotfest_votaciones_run();
