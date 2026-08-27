@@ -23,6 +23,15 @@ class Shortcode {
         // Los assets solo se cargan donde está el shortcode, no en todo el sitio
         \ShotfestVotaciones\Plugin::enqueue_frontend();
 
+        return '<div class="sf-app">' . $this->render_contenido() . '</div>';
+    }
+
+    /**
+     * Decide qué pantalla toca. La envoltura `.sf-app` la pone render(): ahí viven los
+     * tokens de color y tipografía, así que todas las salidas —incluidos los avisos—
+     * tienen que quedar dentro.
+     */
+    private function render_contenido(): string {
         // Pantalla de login si no está autenticado
         if ( ! is_user_logged_in() ) {
             return $this->render_login();

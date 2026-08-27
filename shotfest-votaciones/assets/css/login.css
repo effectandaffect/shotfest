@@ -1,0 +1,173 @@
+/*
+ * ShotFest Votaciones — wp-login.php
+ *
+ * El enlace del email de bienvenida aterriza aquí. Sin tocar es la pantalla gris de
+ * WordPress con su logo, y quien acaba de recibir un correo para «entrar como jurado»
+ * lo lee como phishing. Se viste con la identidad del festival —marino, ámbar, mucho
+ * blanco— para que la cadena email → contraseña → votar se vea de una pieza.
+ *
+ * wp-login.php no carga el tema, así que aquí no hay Aftika disponible.
+ */
+
+body.login {
+    background: #f7f5f2;
+    color: #3a4450;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+/* Franja marino arriba, como el banner del sitio */
+body.login::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: 180px;
+    background: #0b1a2e;
+}
+
+#login { width: 372px; padding: 68px 0 40px; position: relative; z-index: 1; }
+
+/* Logo del sitio sobre la franja marino */
+#login h1 a {
+    width: 90px;
+    height: 90px;
+    background-size: contain;
+    background-position: center;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 6px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px -14px rgba(0, 0, 0, .6);
+}
+
+.login form {
+    background: #fff;
+    border: 1px solid rgba(11, 26, 46, .12);
+    border-top: 3px solid #f39200;
+    border-radius: 12px;
+    box-shadow: 0 24px 60px -40px rgba(11, 26, 46, .5);
+    padding: 30px 28px 26px;
+    margin-top: 18px;
+}
+
+.login label {
+    color: #78818f;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+.login form .forgetmenot label {
+    font-size: 13.5px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #3a4450;
+}
+
+.login form .input,
+.login input[type="text"],
+.login input[type="password"] {
+    background: #f7f5f2;
+    border: 1px solid rgba(11, 26, 46, .12);
+    border-radius: 6px;
+    color: #0b1a2e;
+    font-size: 15px;
+    padding: 12px 14px;
+    box-shadow: none;
+    transition: border-color .18s ease, background .18s ease;
+}
+.login form .input:focus,
+.login input[type="text"]:focus,
+.login input[type="password"]:focus {
+    background: #fff;
+    border-color: #f39200;
+    box-shadow: 0 0 0 3px rgba(243, 146, 0, .15);
+    outline: none;
+}
+
+.login .button-primary,
+.login .wp-element-button {
+    width: 100%;
+    background: #f39200;
+    border: 0;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    padding: 13px;
+    height: auto;
+    line-height: 1.4;
+    text-shadow: none;
+    box-shadow: none;
+    transition: background .18s ease;
+}
+.login .button-primary:hover,
+.login .wp-element-button:hover { background: #d97f00; color: #fff; }
+
+.login .button.wp-hide-pw { color: #78818f; background: transparent; border: 0; }
+.login .button.wp-hide-pw:hover { color: #b96e00; }
+
+#pass-strength-result {
+    background: #f7f5f2;
+    border-color: rgba(11, 26, 46, .12);
+    color: #3a4450;
+    border-radius: 6px;
+}
+
+/* Avisos */
+.login .message,
+.login .notice,
+.login #login_error {
+    background: #fff;
+    border: 1px solid rgba(11, 26, 46, .12);
+    border-left: 3px solid #f39200;
+    border-radius: 6px;
+    color: #3a4450;
+    box-shadow: none;
+    padding: 14px 16px;
+}
+.login #login_error { border-left-color: #a3271b; }
+
+/* Enlaces de pie, sobre el fondo hueso */
+.login #nav,
+.login #backtoblog { padding: 14px 0 0; text-align: center; }
+
+.login #nav a,
+.login #backtoblog a {
+    color: #78818f;
+    font-size: 13px;
+    text-decoration: none;
+    transition: color .18s ease;
+}
+.login #nav a:hover,
+.login #backtoblog a:hover { color: #b96e00; }
+
+/* Selector de idioma: WordPress lo deja suelto y desentona */
+.login .language-switcher { margin-top: 26px; }
+.login .language-switcher label {
+    color: #78818f;
+    letter-spacing: .12em;
+}
+.login .language-switcher select {
+    border-radius: 6px;
+    border: 1px solid rgba(11, 26, 46, .12);
+    padding: 6px 10px;
+    color: #3a4450;
+}
+.login .language-switcher .button {
+    border-radius: 6px;
+    border: 1px solid rgba(11, 26, 46, .16);
+    background: #fff;
+    color: #3a4450;
+    box-shadow: none;
+}
+
+.login .privacy-policy-page-link { display: none; }
+
+.login :focus-visible { outline: 2px solid #f39200; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    body.login * { transition-duration: .01ms !important; }
+}

@@ -4,20 +4,20 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 ?>
 <div class="sf-login-wrap">
     <div class="sf-login-box">
-        <div class="sf-login-label"><?php esc_html_e( 'Zona de jurado', 'shotfest-votaciones' ); ?></div>
-        <h2 class="sf-login-titulo"><?php esc_html_e( 'Accede para votar', 'shotfest-votaciones' ); ?></h2>
+        <p class="sf-eyebrow"><?php esc_html_e( 'Zona de jurado', 'shotfest-votaciones' ); ?></p>
+        <h2 class="sf-titulo"><?php esc_html_e( 'Accede para votar', 'shotfest-votaciones' ); ?></h2>
         <?php
-        $args = [
+        wp_login_form( [
             'echo'           => true,
             'redirect'       => get_permalink() ?: home_url( '/' ),
             'label_username' => __( 'Usuario', 'shotfest-votaciones' ),
             'label_password' => __( 'Contraseña', 'shotfest-votaciones' ),
             'label_log_in'   => __( 'Entrar', 'shotfest-votaciones' ),
-        ];
-        wp_login_form( $args );
+            'label_remember' => __( 'Mantener la sesión iniciada', 'shotfest-votaciones' ),
+        ] );
         ?>
         <p class="sf-login-ayuda">
-            <?php esc_html_e( '¿No tienes credenciales? Contacta con la organización de SHOT.', 'shotfest-votaciones' ); ?>
+            <?php esc_html_e( '¿Has perdido el acceso? Escribe a la organización de SHOT y te enviamos un enlace nuevo.', 'shotfest-votaciones' ); ?>
         </p>
     </div>
 </div>

@@ -16,6 +16,8 @@ use ShotfestVotaciones\Roles\JuradoAccessRestriction;
 use ShotfestVotaciones\Roles\JuradoRole;
 use ShotfestVotaciones\Frontend\Shortcode;
 use ShotfestVotaciones\Frontend\VotoAjaxController;
+use ShotfestVotaciones\Frontend\MenuVotacion;
+use ShotfestVotaciones\Frontend\LoginBranding;
 use ShotfestVotaciones\Data\VotoRepository;
 use ShotfestVotaciones\Domain\VotoService;
 use ShotfestVotaciones\Domain\ClasificacionService;
@@ -59,6 +61,11 @@ class Plugin {
         ( new Shortcode( $periodo_service, $clasificacion, $voto_repo ) )->register();
         ( new VotoAjaxController( $voto_service ) )->register();
 
+        // «Votación» en el menú mientras haya periodo abierto, y wp-login con la
+        // identidad del festival en vez de la de WordPress
+        ( new MenuVotacion( $periodo_service ) )->register();
+        ( new LoginBranding() )->register();
+
         // Notificaciones y cron
         $email_notifier = new EmailNotifier( $periodo_service, $voto_repo );
         ( new NotificationEvents( $email_notifier ) )->register();
@@ -100,6 +107,26 @@ class Plugin {
                 'nonce'   => wp_create_nonce( 'sf_emitir_voto' ),
             ] );
         }
+
+        // Si la página ya contiene el shortcode, se encola aquí para que la hoja salga en
+        // <head>. Encolarla solo desde dentro del shortcode la dejaba en el pie —después
+        // de que el navegador ya hubiera pintado— y la zona de votación aparecía un
+        // instante sin estilos. La llamada desde el shortcode se mantiene como red para
+        // los casos que este chequeo no ve (widgets, bloques reutilizables).
+        if ( $this->contenido_actual_tiene_shortcode() ) {
+            self::enqueue_frontend();
+        }
+    }
+
+    private function contenido_actual_tiene_shortcode(): bool {
+        if ( ! is_singular() ) {
+            return false;
+        }
+
+        $post = get_queried_object();
+
+        return $post instanceof \WP_Post
+            && has_shortcode( (string) $post->post_content, 'shotfest_votaciones' );
     }
 
     /**
