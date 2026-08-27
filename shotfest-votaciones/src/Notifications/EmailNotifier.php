@@ -15,6 +15,40 @@ class EmailNotifier {
         private readonly VotoRepository $voto_repo
     ) {}
 
+    /**
+     * Envía un correo del plugin firmándolo con el remitente configurado.
+     *
+     * Los filtros se añaden justo antes de `wp_mail()` y se retiran justo después, a
+     * propósito: si se registraran de forma global, el plugin estaría reescribiendo
+     * también el remitente de los correos de WPForms, de Complianz y de la recuperación
+     * de contraseña del núcleo, que no son suyos.
+     *
+     * Con el remitente sin configurar no se toca nada y WordPress usa su valor por
+     * defecto, que es el comportamiento anterior.
+     */
+    private function enviar( string $destinatario, string $asunto, string $cuerpo ): bool {
+        $nombre    = EmailTextosPage::from_name();
+        $direccion = EmailTextosPage::from_address();
+
+        $filtro_nombre    = static fn(): string => $nombre;
+        $filtro_direccion = static fn(): string => $direccion;
+
+        if ( '' !== $nombre ) {
+            add_filter( 'wp_mail_from_name', $filtro_nombre );
+        }
+        if ( '' !== $direccion ) {
+            add_filter( 'wp_mail_from', $filtro_direccion );
+        }
+
+        try {
+            return wp_mail( $destinatario, $asunto, $cuerpo );
+        } finally {
+            // finally: si wp_mail() lanza, los filtros no pueden quedarse puestos
+            remove_filter( 'wp_mail_from_name', $filtro_nombre );
+            remove_filter( 'wp_mail_from', $filtro_direccion );
+        }
+    }
+
     private function get_template( string $option_key ): string {
         return get_option( $option_key, EmailTextosPage::OPTIONS[ $option_key ]['default'] ?? '' );
     }
@@ -102,7 +136,7 @@ class EmailNotifier {
             'url_votaciones' => PaginaVotacion::url(),
         ] );
 
-        wp_mail(
+        $this->enviar(
             $user->user_email,
             __( 'Bienvenido/a al jurado ShotFest', 'shotfest-votaciones' ),
             $cuerpo
@@ -123,7 +157,7 @@ class EmailNotifier {
                 'fecha_fin'      => $this->formatear_fecha( (string) $fecha_fin ),
             ] );
 
-            wp_mail(
+            $this->enviar(
                 $user->user_email,
                 sprintf( __( 'ShotFest %s — Votación abierta', 'shotfest-votaciones' ), $edicion ),
                 $cuerpo
@@ -154,7 +188,7 @@ class EmailNotifier {
                 'fecha_fin'      => $this->formatear_fecha( (string) $fecha_fin ),
             ] );
 
-            wp_mail(
+            $this->enviar(
                 $user->user_email,
                 sprintf( __( 'ShotFest %s — Recuerda votar', 'shotfest-votaciones' ), $edicion ),
                 $cuerpo
@@ -166,7 +200,7 @@ class EmailNotifier {
         $edicion     = $this->resolve_edicion_anio( $periodo_id );
         $admin_email = get_option( 'admin_email' );
 
-        wp_mail(
+        $this->enviar(
             $admin_email,
             sprintf( __( 'ShotFest %s — Todo el jurado ha votado', 'shotfest-votaciones' ), $edicion ),
             sprintf(
