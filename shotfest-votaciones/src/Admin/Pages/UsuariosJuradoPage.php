@@ -42,6 +42,13 @@ class UsuariosJuradoPage {
             [ $mensaje, $error ] = $this->procesar_eliminacion( absint( $_GET['user_id'] ) );
         }
 
+        if ( isset( $_GET['sf_action'], $_GET['user_id'], $_GET['_wpnonce'] )
+             && 'resetear_password' === $_GET['sf_action']
+             && wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'sf_resetear_password_' . absint( $_GET['user_id'] ) )
+        ) {
+            [ $mensaje, $error ] = $this->procesar_reseteo_password( absint( $_GET['user_id'] ) );
+        }
+
         $ediciones      = $this->get_ediciones();
         $filtro_edicion = absint( $_GET['edicion_id'] ?? 0 );
 
@@ -207,15 +214,12 @@ class UsuariosJuradoPage {
                     <th><?php esc_html_e( 'Nombre', 'shotfest-votaciones' ); ?></th>
                     <th><?php esc_html_e( 'Email', 'shotfest-votaciones' ); ?></th>
                     <th><?php esc_html_e( 'Usuario', 'shotfest-votaciones' ); ?></th>
-                    <th><?php esc_html_e( 'Ediciones', 'shotfest-votaciones' ); ?></th>
                     <th><?php esc_html_e( 'Votación', 'shotfest-votaciones' ); ?></th>
                     <th><?php esc_html_e( 'Acciones', 'shotfest-votaciones' ); ?></th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ( $jurado as $user ) :
-                    $ediciones_labels = $this->ediciones_de_usuario( $user->ID );
-
                     if ( $periodo_abierto && $total_spots > 0 ) {
                         $votados      = count( $this->voto_repo->votos_usuario( $user->ID, $periodo_abierto->ID ) );
                         $completo     = $votados >= $total_spots;
@@ -240,12 +244,20 @@ class UsuariosJuradoPage {
                         ], admin_url( 'admin.php' ) ),
                         'sf_eliminar_jurado_' . $user->ID
                     );
+
+                    $reset_url = wp_nonce_url(
+                        add_query_arg( [
+                            'page'      => 'sf-jurado',
+                            'sf_action' => 'resetear_password',
+                            'user_id'   => $user->ID,
+                        ], admin_url( 'admin.php' ) ),
+                        'sf_resetear_password_' . $user->ID
+                    );
                 ?>
                     <tr>
                         <td><strong><?php echo esc_html( $user->display_name ); ?></strong></td>
                         <td><?php echo esc_html( $user->user_email ); ?></td>
                         <td><?php echo esc_html( $user->user_login ); ?></td>
-                        <td><?php echo esc_html( $ediciones_labels ? implode( ', ', $ediciones_labels ) : '—' ); ?></td>
                         <td>
                             <?php if ( ! $periodo_abierto || 0 === $total_spots ) : ?>
                                 <span style="color:#999;">—</span>
@@ -259,6 +271,11 @@ class UsuariosJuradoPage {
                         </td>
                         <td>
                             <a href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Editar', 'shotfest-votaciones' ); ?></a>
+                            &nbsp;|&nbsp;
+                            <a href="<?php echo esc_url( $reset_url ); ?>"
+                               onclick="return confirm('<?php echo esc_js( __( '¿Enviar un enlace para establecer una nueva contraseña? El enlace anterior (si lo hay) dejará de funcionar.', 'shotfest-votaciones' ) ); ?>')">
+                                <?php esc_html_e( 'Resetear contraseña', 'shotfest-votaciones' ); ?>
+                            </a>
                             &nbsp;|&nbsp;
                             <a href="<?php echo esc_url( $delete_url ); ?>"
                                onclick="return confirm('<?php echo esc_js( __( '¿Eliminar este miembro del jurado? Se elimina la cuenta de usuario, pero sus votos ya emitidos se conservan y siguen contando en los resultados.', 'shotfest-votaciones' ) ); ?>')"
@@ -281,18 +298,6 @@ class UsuariosJuradoPage {
             'orderby'        => 'title',
             'order'          => 'DESC',
         ] );
-    }
-
-    private function ediciones_de_usuario( int $user_id ): array {
-        $ids = array_map( 'intval', get_user_meta( $user_id, '_sf_jurado_edicion_id', false ) );
-        $labels = [];
-        foreach ( $ids as $id ) {
-            $p = get_post( $id );
-            if ( $p ) {
-                $labels[] = $p->post_title;
-            }
-        }
-        return $labels;
     }
 
     /**
@@ -415,6 +420,26 @@ class UsuariosJuradoPage {
         }
 
         return [ sprintf( __( 'Datos de %s actualizados.', 'shotfest-votaciones' ), trim( $nombre . ' ' . $apellidos ) ), '' ];
+    }
+
+    /**
+     * Reutiliza el email de bienvenida: genera un enlace nuevo de `get_password_reset_key()`
+     * (invalida cualquier enlace anterior, es el comportamiento de WP) y lo reenvía.
+     *
+     * @return array{0:string,1:string} [mensaje, error]
+     */
+    private function procesar_reseteo_password( int $user_id ): array {
+        $user = get_userdata( $user_id );
+        if ( ! $user || ! in_array( JuradoRole::ROLE_SLUG, $user->roles, true ) ) {
+            return [ '', __( 'Usuario no encontrado.', 'shotfest-votaciones' ) ];
+        }
+
+        do_action( 'shotfest_jurado_alta', $user_id );
+
+        return [ sprintf(
+            __( 'Se ha enviado a %s un enlace para establecer una nueva contraseña.', 'shotfest-votaciones' ),
+            $user->user_email
+        ), '' ];
     }
 
     /** @return array{0:string,1:string} [mensaje, error] */

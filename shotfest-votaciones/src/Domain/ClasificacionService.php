@@ -85,15 +85,19 @@ class ClasificacionService {
             // Ordenar por votos Sí desc, luego por votos No asc
             usort( $spots_con_votos, static fn( $a, $b ) => $b['si'] <=> $a['si'] ?: $a['no'] <=> $b['no'] );
 
-            // Asignar posición y shortlist (empates: todos con el máximo de Sí pasan)
+            // Asignar posición y shortlist (empates: todos con el máximo de Sí pasan).
+            // El "No" desempata la posición: dos spots solo comparten posición si
+            // coinciden tanto en Sí como en No.
             $max_si   = $spots_con_votos[0]['si'] ?? 0;
             $posicion = 0;
             $prev_si  = null;
+            $prev_no  = null;
 
             foreach ( $spots_con_votos as &$entry ) {
-                if ( $entry['si'] !== $prev_si ) {
+                if ( $entry['si'] !== $prev_si || $entry['no'] !== $prev_no ) {
                     $posicion++;
                     $prev_si = $entry['si'];
+                    $prev_no = $entry['no'];
                 }
                 $entry['posicion']  = $posicion;
                 $entry['shortlist'] = $max_si > 0 && $entry['si'] === $max_si;

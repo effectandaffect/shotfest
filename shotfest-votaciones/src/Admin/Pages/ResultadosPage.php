@@ -129,7 +129,15 @@ class ResultadosPage {
                     <?php else : ?>
                         <?php foreach ( $clasificacion as $cat_data ) : ?>
                             <h3><?php echo esc_html( $cat_data['categoria']->name ); ?></h3>
-                            <table class="widefat striped">
+                            <table class="widefat striped" style="table-layout:fixed;">
+                                <colgroup>
+                                    <col style="width:60px;">
+                                    <col style="width:34%;">
+                                    <col style="width:22%;">
+                                    <col style="width:100px;">
+                                    <col style="width:100px;">
+                                    <col style="width:120px;">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th><?php esc_html_e( 'Pos.', 'shotfest-votaciones' ); ?></th>

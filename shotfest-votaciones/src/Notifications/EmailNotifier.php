@@ -82,7 +82,13 @@ class EmailNotifier {
             return;
         }
 
-        $reset_key  = get_password_reset_key( $user );
+        // El TTL de WP por defecto es de 24h (DAY_IN_SECONDS); con 12-15 altas de golpe es
+        // probable que alguien abra el enlace tarde, así que se amplía a 96h solo para este
+        // envío (el filtro se retira justo después para no afectar a otros resets de contraseña).
+        $ampliar_ttl = static fn (): int => 4 * DAY_IN_SECONDS;
+        add_filter( 'password_reset_expiration', $ampliar_ttl );
+        $reset_key = get_password_reset_key( $user );
+        remove_filter( 'password_reset_expiration', $ampliar_ttl );
         if ( is_wp_error( $reset_key ) ) {
             return;
         }
