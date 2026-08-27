@@ -3,7 +3,7 @@
  * Plugin Name:       ShotFest Votaciones
  * Plugin URI:        https://shotfest.es
  * Description:       Sistema de votaciones para el jurado de los premios ShotFest de Grupo 014.
- * Version:           1.0.0
+ * Version:           1.2.0
  * Author:            014Media
  * License:           Proprietary
  * Text Domain:       shotfest-votaciones
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'SF_VERSION', '1.1.0' );
+define( 'SF_VERSION', '1.2.0' );
 define( 'SF_PLUGIN_FILE', __FILE__ );
 define( 'SF_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SF_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

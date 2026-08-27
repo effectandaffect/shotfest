@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace ShotfestVotaciones\Roles;
 
+use ShotfestVotaciones\Frontend\PaginaVotacion;
+
 /** El jurado nunca entra en wp-admin (ver CLAUDE.md): oculta la barra de admin y bloquea el acceso directo. */
 class JuradoAccessRestriction {
 
@@ -23,7 +25,9 @@ class JuradoAccessRestriction {
             return;
         }
 
-        wp_safe_redirect( home_url( '/' ) );
+        // A la hoja de votación, no a la portada: el jurado que teclea /wp-admin
+        // debe acabar donde puede votar (PaginaVotacion cae a la home si no hay página).
+        wp_safe_redirect( PaginaVotacion::url() );
         exit;
     }
 

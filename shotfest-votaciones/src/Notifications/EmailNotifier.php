@@ -6,6 +6,7 @@ namespace ShotfestVotaciones\Notifications;
 use ShotfestVotaciones\Admin\Pages\EmailTextosPage;
 use ShotfestVotaciones\Domain\PeriodoService;
 use ShotfestVotaciones\Data\VotoRepository;
+use ShotfestVotaciones\Frontend\PaginaVotacion;
 
 class EmailNotifier {
 
@@ -98,7 +99,7 @@ class EmailNotifier {
         $cuerpo   = $this->render( $template, [
             'edicion'        => $this->anio_del_jurado( $user_id ),
             'link_password'  => $reset_url,
-            'url_votaciones' => home_url( '/' ),
+            'url_votaciones' => PaginaVotacion::url(),
         ] );
 
         wp_mail(
@@ -118,7 +119,7 @@ class EmailNotifier {
             $cuerpo = $this->render( $template, [
                 'nombre'         => $user->display_name,
                 'edicion'        => (string) $edicion,
-                'url_votaciones' => home_url( '/' ),
+                'url_votaciones' => PaginaVotacion::url(),
                 'fecha_fin'      => $this->formatear_fecha( (string) $fecha_fin ),
             ] );
 
@@ -149,7 +150,7 @@ class EmailNotifier {
             $cuerpo = $this->render( $template, [
                 'nombre'         => $user->display_name,
                 'edicion'        => (string) $edicion,
-                'url_votaciones' => home_url( '/' ),
+                'url_votaciones' => PaginaVotacion::url(),
                 'fecha_fin'      => $this->formatear_fecha( (string) $fecha_fin ),
             ] );
 
